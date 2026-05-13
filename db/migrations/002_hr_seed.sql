@@ -67,7 +67,7 @@ INSERT INTO employee (empno, lastname, firstname, gender, birthdate, hiredate, s
   ('00063','Grant',      'Albert',   'M','1979-05-05','2011-01-05', NULL);
 
 -- jobHistory seed data
-INSERT INTO jobHistory (empNo, jobCode, effDate, salary, deptCode) VALUES
+INSERT INTO jobHistory (empno, jobCode, effDate, salary, deptCode) VALUES
   ('00001','PR1', '2010-05-11', 48000,'IT'),
   ('00001','PR2', '2010-12-01', 50000,'IT'),
   ('00003','PR2', '2010-05-11', 50000,'IT'),
