@@ -1,20 +1,40 @@
-HEAD
-# React + Vite
+## Git Branching Strategy & Protection
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project follows a strict branching strategy as defined in the Sprint Deliverables document.
 
-Currently, two official plugins are available:
+### Protected Branches
+- `main` — Production branch (stable)
+- `dev` — Main integration branch (default)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Branch Protection Rules Applied:**
+- Require a pull request before merging
+- Require at least 1 approving review
+- Include administrators
+- No direct pushes to `main` or `dev`
 
-## React Compiler
+### Branch Naming Convention
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Prefix            | Purpose                        | Example                              |
+|-------------------|--------------------------------|--------------------------------------|
+| `feat/`           | New features                   | `feat/employee-api`                  |
+| `fix/`            | Bug fixes                      | `fix/login-bug`                      |
+| `db/`             | Database changes               | `db/employee-rls-policies`           |
+| `test/`           | Testing                        | `test/51-rights-matrix`              |
+| `docs/`           | Documentation                  | `docs/user-manual`                   |
+| `chore/`          | Config, tooling, setup         | `chore/github-branch-protection`     |
 
-## Expanding the ESLint configuration
+### Workflow Rules
+- Work on feature branches only
+- All PRs target `dev`
+- PR must be reviewed by at least one teammate before merging
+- Delete branch after successful merge
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
 
-# HR-System-2.0
-e5676efa957ad4c8175a5222e502a774fee63a46
+**Now do this:**
+
+1. Paste the above content into `README.md` (you can put it after the project title).
+2. Save the file (`Ctrl + S`)
+3. Reply with: **`Saved`**
+
+Then I will give you the commit and push commands.
