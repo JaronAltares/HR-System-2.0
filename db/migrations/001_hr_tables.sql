@@ -7,14 +7,14 @@ CREATE TABLE department (
   deptCode      VARCHAR(3)  NOT NULL PRIMARY KEY,
   deptName      VARCHAR(20),
   record_status VARCHAR(10) NOT NULL DEFAULT 'ACTIVE',
-  stamp         VARCHAR(60)
+  stamp         VARCHAR(100)
 );
 
 CREATE TABLE job (
   jobCode       VARCHAR(4)  NOT NULL PRIMARY KEY,
   jobDesc       VARCHAR(20),
   record_status VARCHAR(10) NOT NULL DEFAULT 'ACTIVE',
-  stamp         VARCHAR(60)
+  stamp         VARCHAR(100)
 );
 
 CREATE TABLE employee (
@@ -26,7 +26,7 @@ CREATE TABLE employee (
   hiredate      DATE,
   sepDate       DATE,
   record_status VARCHAR(10) NOT NULL DEFAULT 'ACTIVE',
-  stamp         VARCHAR(60)
+  stamp         VARCHAR(100)
 );
 
 CREATE TABLE jobHistory (
@@ -36,6 +36,6 @@ CREATE TABLE jobHistory (
   salary        DECIMAL(10,2) CONSTRAINT salary_ck CHECK (salary >= 0.0),
   deptCode      VARCHAR(3)  REFERENCES department(deptCode),
   record_status VARCHAR(10) NOT NULL DEFAULT 'ACTIVE',
-  stamp         VARCHAR(60),
+  stamp         VARCHAR(100),
   PRIMARY KEY (empNo, jobCode, effDate)
 );
