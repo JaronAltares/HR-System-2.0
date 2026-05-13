@@ -4,11 +4,19 @@
 -- ============================================================
 
 -- MODULES
+<<<<<<< Updated upstream
 INSERT INTO Module VALUES ('Emp_Mod',  'Employee Module',    'ACTIVE', 'SEEDED');
 INSERT INTO Module VALUES ('JH_Mod',   'Job History Module', 'ACTIVE', 'SEEDED');
 INSERT INTO Module VALUES ('Job_Mod',  'Job Module',         'ACTIVE', 'SEEDED');
 INSERT INTO Module VALUES ('Dept_Mod', 'Department Module',  'ACTIVE', 'SEEDED');
 INSERT INTO Module VALUES ('Adm_Mod',  'Admin Module',       'ACTIVE', 'SEEDED');
+=======
+INSERT INTO "Module" VALUES ('Emp_Mod',  'Employee Module',    'ACTIVE', 'SEEDED');
+INSERT INTO "Module" VALUES ('JH_Mod',   'Job History Module', 'ACTIVE', 'SEEDED');
+INSERT INTO "Module" VALUES ('Job_Mod',  'Job Module',         'ACTIVE', 'SEEDED');
+INSERT INTO "Module" VALUES ('Dept_Mod', 'Department Module',  'ACTIVE', 'SEEDED');
+INSERT INTO "Module" VALUES ('Adm_Mod',  'Admin Module',       'ACTIVE', 'SEEDED');
+>>>>>>> Stashed changes
 
 -- RIGHTS (Right_value = 1 means the right exists)
 INSERT INTO rights VALUES ('EMP_VIEW',  'View Employees',         1,'Emp_Mod', 'ACTIVE','SEEDED');
