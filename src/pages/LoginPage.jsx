@@ -31,10 +31,19 @@ function LoginPage() {
     });
     setLoading(false);
 
-    if (authError) {
+   if (authError) {
       setError(authError.message);
     } else {
-      navigate("/employees");
+      // Login Guard — check if user is ACTIVE
+      const { data: { user } } = await supabase.auth.getUser()
+      const status = user?.app_metadata?.record_status
+
+      if (status !== 'ACTIVE') {
+        await supabase.auth.signOut()
+        setError("Your account is inactive. Please contact an Admin to activate your account.")
+      } else {
+        navigate("/employees")
+      }
     }
   };
 
