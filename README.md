@@ -1,4 +1,5 @@
 ## Git Branching Strategy & Protection
+# React + Vite
 
 This project follows a strict branching strategy as defined in the Sprint Deliverables document.
 
@@ -38,3 +39,4 @@ This project follows a strict branching strategy as defined in the Sprint Delive
 3. Reply with: **`Saved`**
 
 Then I will give you the commit and push commands.
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
