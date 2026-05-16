@@ -1,75 +1,28 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import ProtectedRoute from './components/ProtectedRoute';
-
-// Placeholder Pages (we'll create them later)
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+// import RegisterPage from './pages/RegisterPage';     // Comment out for now
+// import AppShell from './components/AppShell';       // Comment out for now
+
+// Temporary ProtectedRoute (we'll fix path later)
+import ProtectedRoute from './routes/ProtectedRoutes';   // Try this name first
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        {/* <Route path="/register" element={<RegisterPage />} /> */}
+        
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<div>Home Page (Protected)</div>} />
+          <Route path="/employees" element={<div>Employees Page</div>} />
+          <Route path="/jobhistory" element={<div>Job History Page</div>} />
+          <Route path="/jobs" element={<div>Jobs Page</div>} />
+          <Route path="/departments" element={<div>Departments Page</div>} />
+          <Route path="/deleted-items" element={<div>Deleted Items Page</div>} />
+        </Route>
 
-        {/* Protected Routes */}
-        <Route 
-          path="/" 
-          element={
-            <ProtectedRoute>
-              <div>Welcome to Hope HR System</div>
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route 
-          path="/employees" 
-          element={
-            <ProtectedRoute>
-              <div>Employees Page (Coming Soon)</div>
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route 
-          path="/jobhistory" 
-          element={
-            <ProtectedRoute>
-              <div>Job History Page (Coming Soon)</div>
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route 
-          path="/jobs" 
-          element={
-            <ProtectedRoute>
-              <div>Jobs Page (Coming Soon)</div>
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route 
-          path="/departments" 
-          element={
-            <ProtectedRoute>
-              <div>Departments Page (Coming Soon)</div>
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route 
-          path="/deleted-items" 
-          element={
-            <ProtectedRoute>
-              <div>Deleted Items Page (Admin Only)</div>
-            </ProtectedRoute>
-          } 
-        />
-
-        {/* 404 Route */}
-        <Route path="*" element={<div>404 - Page Not Found</div>} />
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
   );
