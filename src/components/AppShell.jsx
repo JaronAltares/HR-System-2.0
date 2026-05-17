@@ -1,85 +1,60 @@
-import { Link, useLocation } from 'react-router-dom';
-import { LogOut, Users, Briefcase, Building, History, Trash2, UserCog } from 'lucide-react';
+// src/components/AppShell.jsx
+// M2 – PR-03: feat/ui-app-shell
+// Layout wrapper for all protected pages.
+// Composes Sidebar + Navbar + scrollable content area.
+//
+// Props (wired by M4):
+//   user      → { name: string, email: string, role: string }
+//   onLogout  → async function — Supabase signOut()
+//   children  → page content rendered in the main area
 
-function AppShell({ children }) {
-  const location = useLocation();
+import { useState } from "react";
+import { useLocation } from "react-router-dom";
+import Sidebar from "./Sidebar";
+import Navbar from "./Navbar";
 
-  const menuItems = [
-    { path: '/employees', label: 'Employees', icon: Users },
-    { path: '/jobhistory', label: 'Job History', icon: History },
-    { path: '/jobs', label: 'Jobs', icon: Briefcase },
-    { path: '/departments', label: 'Departments', icon: Building },
-    { path: '/deleted-items', label: 'Deleted Items', icon: Trash2 },
-    { path: '/admin', label: 'Admin', icon: UserCog },
-  ];
+// ─── Route → Page Title Map ────────────────────────────────────────────────────
+const PAGE_TITLES = {
+  "/employees":    "Employees",
+  "/jobhistory":   "Job History",
+  "/jobs":         "Jobs",
+  "/departments":  "Departments",
+  "/admin":        "Admin Panel",
+  "/deleted-items":"Deleted Items",
+};
+
+// ─── AppShell Component ────────────────────────────────────────────────────────
+export default function AppShell({ user, onLogout, children }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location  = useLocation();
+  const pageTitle = PAGE_TITLES[location.pathname] ?? "";
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b">
-          <h1 className="text-2xl font-bold text-purple-600">HopeHRS</h1>
-          <p className="text-sm text-gray-500">Human Resource System</p>
-        </div>
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#F9FAFB" }}>
 
-        <nav className="flex-1 p-4">
-          <ul className="space-y-1">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <li key={item.path}>
-                  <Link
-                    to={item.path}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      isActive 
-                        ? 'bg-purple-100 text-purple-700' 
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Icon size={20} />
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+      {/* ── Sidebar ──────────────────────────────────────────────────────── */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
-        <div className="p-4 border-t">
-          <button className="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium">
-            <LogOut size={20} />
-            Logout
-          </button>
-        </div>
-      </div>
+      {/* ── Main Column ──────────────────────────────────────────────────── */}
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Navbar */}
-        <header className="h-16 bg-white border-b flex items-center px-8 justify-between">
-          <div className="font-medium text-gray-700">
-            {menuItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-right">
-              <div className="font-medium">Jaron Altares</div>
-              <div className="text-gray-500 text-xs">HR Staff</div>
-            </div>
-            <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-medium">
-              JA
-            </div>
-          </div>
-        </header>
+        {/* Navbar */}
+        <Navbar
+          user={user}
+          onLogout={onLogout}
+          onMenuClick={() => setSidebarOpen(true)}
+          pageTitle={pageTitle}
+        />
 
-        {/* Page Content */}
-        <main className="flex-1 p-8 overflow-auto">
+        {/* ── Page Content ─────────────────────────────────────────────── */}
+        <main className="flex-1 overflow-y-auto p-6">
           {children}
         </main>
+
       </div>
     </div>
   );
 }
-
-export default AppShell;
