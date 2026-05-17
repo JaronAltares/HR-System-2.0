@@ -2,10 +2,15 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 
 // Pages
 import LoginPage from './pages/LoginPage';
-// import RegisterPage from './pages/RegisterPage';   // Uncomment when ready
+import Employees from './pages/Employees';
+import JobHistory from './pages/JobHistory';
+import Jobs from './pages/Jobs';
+import Departments from './pages/Departments';
+import DeletedItems from './pages/DeletedItems';
 
 // Components
-import ProtectedRoute from './components/ProtectedRoute';   // Make sure path is correct
+import AppShell from './components/AppShell';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -13,20 +18,21 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
-        {/* <Route path="/register" element={<RegisterPage />} /> */}
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<div>Welcome to Hope HR System</div>} />
-          
-          <Route path="/employees" element={<div>Employees Page (Coming Soon)</div>} />
-          <Route path="/jobhistory" element={<div>Job History Page (Coming Soon)</div>} />
-          <Route path="/jobs" element={<div>Jobs Page (Coming Soon)</div>} />
-          <Route path="/departments" element={<div>Departments Page (Coming Soon)</div>} />
-          <Route path="/deleted-items" element={<div>Deleted Items Page (Admin Only)</div>} />
+          <Route element={<AppShell />}>
+            <Route path="/" element={<div className="p-10 text-center text-3xl">Welcome to Hope HR System</div>} />
+            
+            <Route path="/employees" element={<Employees />} />
+            <Route path="/jobhistory" element={<JobHistory />} />
+            <Route path="/jobs" element={<Jobs />} />
+            <Route path="/departments" element={<Departments />} />
+            <Route path="/deleted-items" element={<DeletedItems />} />
+          </Route>
         </Route>
 
-        {/* Catch all / 404 */}
+        {/* 404 */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
