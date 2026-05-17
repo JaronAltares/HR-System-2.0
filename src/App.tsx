@@ -16,12 +16,18 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
 
+        {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
-            <Route path="/" element={<div className="p-10 text-center text-3xl">Welcome to Hope HR System</div>} />
-            
+            <Route path="/" element={
+              <div className="p-10 text-center">
+                <h1 className="text-4xl font-bold text-gray-800">Welcome to Hope HR System</h1>
+              </div>
+            } />
+
             <Route path="/employees" element={<Employees />} />
             <Route path="/jobhistory" element={<JobHistory />} />
             <Route path="/jobs" element={<Jobs />} />
@@ -30,6 +36,7 @@ function App() {
           </Route>
         </Route>
 
+        {/* 404 */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
