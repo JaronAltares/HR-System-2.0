@@ -16,10 +16,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
             <Route path="/" element={<div className="p-10 text-center text-3xl">Welcome to Hope HR System</div>} />
@@ -32,7 +30,6 @@ function App() {
           </Route>
         </Route>
 
-        {/* 404 */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
