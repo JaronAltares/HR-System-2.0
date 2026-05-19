@@ -10,4 +10,4 @@ CREATE POLICY "Allow authenticated users to read own profile"
 ON public."user" 
 FOR SELECT 
 TO authenticated 
-USING ( "userId" = auth.uid()::text );
+USING ( userid = auth.uid()::text );
