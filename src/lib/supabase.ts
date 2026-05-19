@@ -5,4 +5,4 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-console.log('✅ Supabase client initialized successfully')
+console.log('✅ Supabase client initialized successfully with Hope HR System project')
