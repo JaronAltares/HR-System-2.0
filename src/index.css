@@ -1,0 +1,61 @@
+/* ============== TAILWIND CSS V4 ============== */
+@import "tailwindcss";
+
+/* ============== M2 Design System Tokens ============== */
+:root {
+  /* Color Palette Configuration */
+  --primary-dark: #1B263B;    /* Deep Navy: Core components and sidebars */
+  --accent-teal: #59ABBD;     /* Bright Teal: Hover actions, buttons, rings */
+  --text-muted: #9FB3C8;      /* Muted Slate: Sub-labels and borders */
+  --dark-muted: #4A6080;      /* Dark Gray: Descriptive content body text */
+  --surface-bg: #F9FAFB;      /* Slate White: Base layout backgrounds */
+  
+  /* Typography Directives */
+  --sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --heading: 'DM Serif Display', Georgia, serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Global Base Settings */
+  font-family: var(--sans);
+  color: var(--primary-dark);
+  background-color: var(--surface-bg);
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Structural Reset to ensure AppShell spans full width of the viewport */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--surface-bg);
+}
+
+/* React Core Root Element Container mapping to flex dashboards */
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Typography Gating Structure */
+h1 {
+  font-family: var(--heading);
+  font-weight: normal;
+  color: var(--primary-dark);
+}
+
+h2, h3, h4, h5, h6 {
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+p {
+  margin: 0;
+}

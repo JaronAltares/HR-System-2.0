@@ -1,0 +1,44 @@
+// src/config/rights.js
+
+export const RIGHTS = {
+  // Employee Module
+  EMP_VIEW: 'EMP_VIEW',
+  EMP_ADD: 'EMP_ADD',
+  EMP_EDIT: 'EMP_EDIT',
+  EMP_DELETE: 'EMP_DELETE', // Soft Delete
+
+  // Job Module
+  JOB_VIEW: 'JOB_VIEW',
+  JOB_ADD: 'JOB_ADD',
+  JOB_EDIT: 'JOB_EDIT',
+  JOB_DELETE: 'JOB_DELETE',
+
+  // Department Module
+  DEPT_VIEW: 'DEPT_VIEW',
+  DEPT_ADD: 'DEPT_ADD',
+  DEPT_EDIT: 'DEPT_EDIT',
+  DEPT_DELETE: 'DEPT_DELETE',
+
+  // History & System
+  HIST_VIEW: 'HIST_VIEW',
+  HIST_ADD: 'HIST_ADD',
+  AUTH_MANAGE: 'AUTH_MANAGE', // Admin/Superadmin only
+  REPORT_VIEW: 'REPORT_VIEW',
+  SYSTEM_CONFIG: 'SYSTEM_CONFIG'
+};
+
+export const ROLE_PERMISSIONS = {
+  SUPERADMIN: Object.values(RIGHTS), // All 17 rights
+  ADMIN: [
+    RIGHTS.EMP_VIEW, RIGHTS.EMP_ADD, RIGHTS.EMP_EDIT,
+    RIGHTS.JOB_VIEW, RIGHTS.JOB_ADD, RIGHTS.JOB_EDIT,
+    RIGHTS.DEPT_VIEW, RIGHTS.DEPT_ADD, RIGHTS.DEPT_EDIT,
+    RIGHTS.HIST_VIEW, RIGHTS.REPORT_VIEW
+  ], // No delete rights
+  USER: [
+    RIGHTS.EMP_VIEW, 
+    RIGHTS.JOB_VIEW, 
+    RIGHTS.DEPT_VIEW, 
+    RIGHTS.HIST_VIEW
+  ] // Read-only
+};
