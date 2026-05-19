@@ -10,7 +10,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useRights }        from "../hooks/useRights";
 import { useCurrentUser }   from "../hooks/useCurrentUser";
 import { useAuth }          from "../context/AuthContext";
-import { employeeService }  from "../services/employeeService";
+// CORRECT (Importing as a default export)
+import employeeService from "../services/employeeService";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(dateStr) {
@@ -312,10 +313,10 @@ function SoftDeleteDialog({ employee, onClose, onConfirm }) {
           </svg>
           <div>
             <p className="text-sm font-semibold text-red-700">
-              This will soft-delete this employee and all their job history.
+              This will soft-delete this employee and all their job history. [cite: 109]
             </p>
             <p className="text-xs text-red-500 mt-1">
-              Sets record_status = INACTIVE. Recoverable from Deleted Items.
+              Sets record_status = INACTIVE. Recoverable from Deleted Items. [cite: 68, 71, 148]
             </p>
           </div>
         </div>
@@ -392,11 +393,12 @@ export default function Employees() {
     if (!search.trim()) return employees;
     const q = search.toLowerCase();
     return employees.filter(e =>
-      e.empno.includes(q)                                ||
-      e.lastname.toLowerCase().includes(q)              ||
-      e.firstname.toLowerCase().includes(q)             ||
-      (e.currentJob  ?? "").toLowerCase().includes(q)   ||
-      (e.currentDept ?? "").toLowerCase().includes(q)
+      e.empno.includes(q)                                      ||
+      e.lastname.toLowerCase().includes(q)                     ||
+      e.firstname.toLowerCase().includes(q)                    ||
+      // FIXED: Synchronized regex search params to evaluate database views 'jobDesc' and 'deptName'
+      (e.jobDesc  ?? "").toLowerCase().includes(q)             ||
+      (e.deptName ?? "").toLowerCase().includes(q)
     );
   }, [employees, search]);
 
@@ -463,7 +465,7 @@ export default function Employees() {
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {visible.length} record{visible.length !== 1 ? "s" : ""}
-            {!isPrivileged && " · Active records only"}
+            {!isPrivileged && " · Active records only"} [cite: 69]
           </p>
         </div>
 
@@ -518,7 +520,7 @@ export default function Employees() {
                 {[
                   "Emp No.", "Last Name", "First Name", "Gender",
                   "Hire Date", "Sep. Date",
-                  ...(isPrivileged ? ["Status", "Stamp"] : []),
+                  ...(isPrivileged ? ["Status", "Stamp"] : []), 
                   "Actions",
                 ].map(h => (
                   <th key={h}
