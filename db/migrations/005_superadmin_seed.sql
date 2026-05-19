@@ -1,15 +1,17 @@
 -- ============================================================
 -- 005_superadmin_seed.sql
 -- Seeds the SUPERADMIN account (jcesperanza@neu.edu.ph)
--- with all 17 rights = 1 and an ACTIVE status.
+-- with all 17 rights = 1 and ACTIVE status.
+-- FIX: Resolved merge conflicts. Used consistent quoted names
+-- "user" and "UserModule_Rights" throughout.
 -- ============================================================
 
--- 1. Insert SUPERADMIN user record
-INSERT INTO "user" (userId, email, username, user_type, record_status, stamp)
+-- 1. Create the SUPERADMIN account
+INSERT INTO "user" ("userId", email, username, user_type, record_status, stamp)
 VALUES ('user1', 'jcesperanza@neu.edu.ph', 'jcesperanza', 'SUPERADMIN', 'ACTIVE', 'SEEDED');
 
 -- 2. Grant access to all 5 modules
-INSERT INTO user_module (userId, module_code, rights_value) VALUES
+INSERT INTO user_module ("userId", module_code, rights_value) VALUES
 ('user1', 'Emp_Mod',  1),
 ('user1', 'JH_Mod',   1),
 ('user1', 'Job_Mod',  1),
@@ -17,7 +19,7 @@ INSERT INTO user_module (userId, module_code, rights_value) VALUES
 ('user1', 'Adm_Mod',  1);
 
 -- 3. Grant all 17 rights to the SUPERADMIN
-INSERT INTO "UserModule_Rights" (userId, module_code, right_code, right_value) VALUES
+INSERT INTO "UserModule_Rights" ("userId", module_code, right_code, right_value) VALUES
 -- Employee Module
 ('user1', 'Emp_Mod',  'EMP_VIEW',  1),
 ('user1', 'Emp_Mod',  'EMP_ADD',   1),

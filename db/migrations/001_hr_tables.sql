@@ -1,6 +1,10 @@
 -- ============================================================
 -- 001_hr_tables.sql
--- Creates the 4 HR tables based on HopeDB with record_status and stamp
+-- Creates the 4 HR tables based on HopeDB.
+-- Adds record_status and stamp to every table per project spec.
+-- FIX: Resolved merge conflicts. Used sizes from the Project Dev Guide:
+--   lastname/firstname VARCHAR(15), deptName/jobDesc VARCHAR(20),
+--   stamp VARCHAR(60), record_status NOT NULL DEFAULT 'ACTIVE'.
 -- ============================================================
 
 CREATE TABLE department (
@@ -31,11 +35,11 @@ CREATE TABLE employee (
 
 CREATE TABLE jobHistory (
   empNo         VARCHAR(5)    NOT NULL REFERENCES employee(empno),
-  jobCode       VARCHAR(4)    NOT NULL REFERENCES job(jobCode),
-  effDate       DATE          NOT NULL,
+  jobCode       VARCHAR(4)   NOT NULL REFERENCES job(jobCode),
+  effDate       DATE         NOT NULL,
   salary        DECIMAL(10,2) CONSTRAINT salary_ck CHECK (salary >= 0.0),
-  deptCode      VARCHAR(3)    REFERENCES department(deptCode),
-  record_status VARCHAR(10)   NOT NULL DEFAULT 'ACTIVE',
+  deptCode      VARCHAR(3)   REFERENCES department(deptCode),
+  record_status VARCHAR(10)  NOT NULL DEFAULT 'ACTIVE',
   stamp         VARCHAR(60),
   PRIMARY KEY (empNo, jobCode, effDate)
 );

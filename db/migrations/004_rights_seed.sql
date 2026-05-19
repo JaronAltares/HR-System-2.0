@@ -1,6 +1,8 @@
 -- ============================================================
 -- 004_rights_seed.sql
--- Inserts 5 modules + 17 rights rows
+-- Inserts 5 modules + 17 rights rows.
+-- FIX: Resolved merge conflicts. All inserts use consistent
+-- quoted table name "Module" to match the CREATE TABLE statement.
 -- ============================================================
 
 -- MODULES
@@ -10,7 +12,8 @@ INSERT INTO "Module" VALUES ('Job_Mod',  'Job Module',         'ACTIVE', 'SEEDED
 INSERT INTO "Module" VALUES ('Dept_Mod', 'Department Module',  'ACTIVE', 'SEEDED');
 INSERT INTO "Module" VALUES ('Adm_Mod',  'Admin Module',       'ACTIVE', 'SEEDED');
 
--- RIGHTS (right_value = 1 means the right exists)
+-- RIGHTS (right_value = 1 means the right definition exists;
+--         per-user assignment is stored in UserModule_Rights)
 INSERT INTO rights VALUES ('EMP_VIEW',  'View Employees',          1, 'Emp_Mod',  'ACTIVE', 'SEEDED');
 INSERT INTO rights VALUES ('EMP_ADD',   'Add Employee',            1, 'Emp_Mod',  'ACTIVE', 'SEEDED');
 INSERT INTO rights VALUES ('EMP_EDIT',  'Edit Employee',           1, 'Emp_Mod',  'ACTIVE', 'SEEDED');
