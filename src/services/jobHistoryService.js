@@ -1,80 +1,85 @@
 import { supabase } from '../lib/supabase';
 
-export const jobHistoryService = {
-  // Get job history for an employee
-  async getJobHistory(empno: string, userType: string) {
+const jobHistoryService = {
+
+  // Get Job History (by Employee or all)
+  async getJobHistory(empNo = null, userType) {
     let query = supabase
       .from('jobHistory')
       .select(`
         *,
-        job:jobCode (
-          jobCode,
-          jobDesc
-        ),
-        department:deptCode (
-          deptCode,
-          deptName
-        )
+        job:jobCode (jobCode, jobDesc),
+        department:deptCode (deptCode, deptName)
       `)
-      .eq('empno', empno)
       .order('effDate', { ascending: false });
 
+    // Filter by specific employee if provided
+    if (empNo) {
+      query = query.eq('empNo', empNo);
+    }
+
+    // USER can only see ACTIVE records
     if (userType === 'USER') {
       query = query.eq('record_status', 'ACTIVE');
     }
 
     const { data, error } = await query;
-    return { data, error };
+    if (error) throw error;
+    return data;
   },
 
-  // Add new job history record
-  async addJobHistory(record: any) {
+  // Add Job History (New Job Assignment / Promotion)
+  async addJobHistory(jobHistoryData) {
     const { data, error } = await supabase
       .from('jobHistory')
-      .insert(record)
-      .select();
-    return { data, error };
+      .insert([jobHistoryData])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   },
 
-  // Update job history
-  async updateJobHistory(empno: string, jobCode: string, effDate: string, updates: any) {
+  // Update Job History
+  async updateJobHistory(id, updates) {
     const { data, error } = await supabase
       .from('jobHistory')
       .update(updates)
-      .eq('empno', empno)
-      .eq('jobCode', jobCode)
-      .eq('effDate', effDate)
-      .select();
-    return { data, error };
+      .eq('id', id)           // assuming you have an 'id' column, or use composite key
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   },
 
-  // Soft Delete
-  async softDeleteJobHistory(empno: string, jobCode: string, effDate: string, userId: string) {
-    const stamp = `CASCADE-DEL ${new Date().toISOString()} ${userId}`;
+  // Soft Delete Job History
+  async softDeleteJobHistory(id) {
     const { data, error } = await supabase
       .from('jobHistory')
       .update({ 
-        record_status: 'INACTIVE', 
-        stamp 
+        record_status: 'INACTIVE',
+        stamp: `DELETED-${new Date().toISOString()}`
       })
-      .eq('empno', empno)
-      .eq('jobCode', jobCode)
-      .eq('effDate', effDate);
-    return { data, error };
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   },
 
-  // Recover
-  async recoverJobHistory(empno: string, jobCode: string, effDate: string, userId: string) {
-    const stamp = `CASCADE-RECOVER ${new Date().toISOString()} ${userId}`;
+  // Recover Job History
+  async recoverJobHistory(id) {
     const { data, error } = await supabase
       .from('jobHistory')
       .update({ 
-        record_status: 'ACTIVE', 
-        stamp 
+        record_status: 'ACTIVE',
+        stamp: `RECOVERED-${new Date().toISOString()}`
       })
-      .eq('empno', empno)
-      .eq('jobCode', jobCode)
-      .eq('effDate', effDate);
-    return { data, error };
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   }
 };
+
+export default jobHistoryService;
