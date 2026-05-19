@@ -1,56 +1,65 @@
-import { supabase } from '../lib/supabase';
+// src/services/departmentService.js
+// FIX: File had TypeScript type annotations (userType: string, dept: any, etc.)
+// in a plain .js file. Vite does not transpile .js files through TypeScript,
+// so this caused a runtime syntax crash. Annotations removed.
+
+import { supabase } from "../lib/supabase";
 
 export const departmentService = {
-  // Get all departments
-  async getDepartments(userType: string) {
-    let query = supabase
-      .from('department')
-      .select('*');
+  // Get all departments — USER sees ACTIVE only; ADMIN/SUPERADMIN see all
+  async getDepartments(userType) {
+    let query = supabase.from("department").select("*");
 
-    if (userType === 'USER') {
-      query = query.eq('record_status', 'ACTIVE');
+    if (userType === "USER") {
+      query = query.eq("record_status", "ACTIVE");
     }
 
-    const { data, error } = await query.order('deptCode');
+    const { data, error } = await query.order("deptCode");
     return { data, error };
   },
 
   // Add new department
-  async addDepartment(dept: any) {
+  async addDepartment(dept) {
     const { data, error } = await supabase
-      .from('department')
+      .from("department")
       .insert(dept)
-      .select();
+      .select()
+      .single();
     return { data, error };
   },
 
   // Update department
-  async updateDepartment(deptCode: string, updates: any) {
+  async updateDepartment(deptCode, updates) {
     const { data, error } = await supabase
-      .from('department')
+      .from("department")
       .update(updates)
-      .eq('deptCode', deptCode)
-      .select();
+      .eq("deptCode", deptCode)
+      .select()
+      .single();
     return { data, error };
   },
 
-  // Soft Delete
-  async softDeleteDepartment(deptCode: string, userId: string) {
-    const stamp = `CASCADE-DEL ${new Date().toISOString()} ${userId}`;
+  // Soft delete — sets record_status = 'INACTIVE' (no hard deletes per project rules)
+  async softDeleteDepartment(deptCode, userId) {
+    const stamp = `DELETED ${new Date().toISOString()} ${userId}`;
     const { data, error } = await supabase
-      .from('department')
-      .update({ record_status: 'INACTIVE', stamp })
-      .eq('deptCode', deptCode);
+      .from("department")
+      .update({ record_status: "INACTIVE", stamp })
+      .eq("deptCode", deptCode)
+      .select()
+      .single();
     return { data, error };
   },
 
-  // Recover
-  async recoverDepartment(deptCode: string, userId: string) {
-    const stamp = `CASCADE-RECOVER ${new Date().toISOString()} ${userId}`;
+  // Recover — sets record_status back to 'ACTIVE'
+  async recoverDepartment(deptCode, userId) {
+    const stamp = `RECOVERED ${new Date().toISOString()} ${userId}`;
     const { data, error } = await supabase
-      .from('department')
-      .update({ record_status: 'ACTIVE', stamp })
-      .eq('deptCode', deptCode);
+      .from("department")
+      .update({ record_status: "ACTIVE", stamp })
+      .eq("deptCode", deptCode)
+      .select()
+      .single();
     return { data, error };
-  }
+  },
 };

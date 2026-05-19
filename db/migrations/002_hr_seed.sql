@@ -1,6 +1,8 @@
 -- ============================================================
 -- 002_hr_seed.sql
--- Inserts all HopeDB seed data into the 4 HR tables
+-- Inserts all HopeDB seed data into the 4 HR tables.
+-- FIX: Resolved merge conflicts. Standardized on lowercase `empNo`
+-- for jobHistory inserts (matches composite PK definition in 001).
 -- ============================================================
 
 INSERT INTO employee (empno, lastname, firstname, gender, birthdate, hiredate, sepDate) VALUES
@@ -48,20 +50,20 @@ INSERT INTO department (deptCode, deptName) VALUES
 ('WHS', 'Warehouse');
 
 INSERT INTO job (jobCode, jobDesc) VALUES
-('PRES', 'President'),
-('VP',   'Vice president'),
-('MGR',  'Manager'),
-('SA1',  'Sales Agent 1'),
-('SA2',  'Sales Agent 2'),
-('SPVR', 'Supervisor'),
-('CLK1', 'Clerk 1'),
-('CLK2', 'Clerk 2'),
-('PR1',  'Programmer 1'),
-('PR2',  'Programmer 2'),
-('ANYS', 'Analyst'),
-('ACCT', 'Accountant'),
-('WMAN', 'Warehouse man'),
-('HRS',  'HR Specialist');
+('PRES','President'),
+('VP',  'Vice president'),
+('MGR', 'Manager'),
+('SA1', 'Sales Agent 1'),
+('SA2', 'Sales Agent 2'),
+('SPVR','Supervisor'),
+('CLK1','Clerk 1'),
+('CLK2','Clerk 2'),
+('PR1', 'Programmer 1'),
+('PR2', 'Programmer 2'),
+('ANYS','Analyst'),
+('ACCT','Accountant'),
+('WMAN','Warehouse man'),
+('HRS', 'HR Specialist');
 
 INSERT INTO jobHistory (empNo, jobCode, effDate, salary, deptCode) VALUES
 ('00001','PR1',  '2010-05-11', 48000, 'IT'),

@@ -1,10 +1,13 @@
 -- ============================================================
 -- 003_rights_tables.sql
--- Creates the 5 auth/rights tables for the HR System
+-- Creates the 5 auth/rights tables for the HR System.
+-- FIX: Resolved merge conflicts. Standardized table names with
+-- consistent quoting: "user", "Module", "UserModule_Rights".
+-- All columns use NOT NULL where required by the dev guide.
 -- ============================================================
 
 CREATE TABLE "user" (
-  userId        VARCHAR(50)  NOT NULL PRIMARY KEY,
+  "userId"      VARCHAR(50)  NOT NULL PRIMARY KEY,
   email         VARCHAR(100),
   username      VARCHAR(50),
   user_type     VARCHAR(20)  NOT NULL,
@@ -20,10 +23,10 @@ CREATE TABLE "Module" (
 );
 
 CREATE TABLE user_module (
-  userId        VARCHAR(50)  NOT NULL REFERENCES "user"(userId),
+  "userId"      VARCHAR(50)  NOT NULL REFERENCES "user"("userId"),
   module_code   VARCHAR(20)  NOT NULL REFERENCES "Module"(module_code),
   rights_value  INT          NOT NULL DEFAULT 0,
-  PRIMARY KEY (userId, module_code)
+  PRIMARY KEY ("userId", module_code)
 );
 
 CREATE TABLE rights (
@@ -36,9 +39,9 @@ CREATE TABLE rights (
 );
 
 CREATE TABLE "UserModule_Rights" (
-  userId        VARCHAR(50)  NOT NULL REFERENCES "user"(userId),
+  "userId"      VARCHAR(50)  NOT NULL REFERENCES "user"("userId"),
   module_code   VARCHAR(20)  NOT NULL REFERENCES "Module"(module_code),
   right_code    VARCHAR(20)  NOT NULL REFERENCES rights(right_code),
   right_value   INT          NOT NULL DEFAULT 0,
-  PRIMARY KEY (userId, module_code, right_code)
+  PRIMARY KEY ("userId", module_code, right_code)
 );
