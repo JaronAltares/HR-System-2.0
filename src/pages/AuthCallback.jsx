@@ -15,6 +15,9 @@ export default function AuthCallback() {
     async function handleCallback() {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
+          console.log("AUTH EVENT:", event);
+          console.log("SESSION:", session);
+
           if (event === "SIGNED_IN" && session) {
             const { data: userRow, error } = await supabase
               .from("user")

@@ -31,7 +31,6 @@ function App() {
       setAuthError(error.message);
       return;
     }
-    // Login guard is handled in AuthContext / ProtectedRoute
   };
 
   // ── Email Sign Up ─────────────────────────────────────────────────────────
