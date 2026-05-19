@@ -1,63 +1,31 @@
-import { supabase } from '../lib/supabase';
+// src/services/employeeService.js
+// M1 – Sprint 1 Placeholder
+// UI ONLY — Structure placeholder for routing compliance. Full API wiring belongs to Sprint 2.
 
 export const employeeService = {
-  // Get all employees (with filter for USER)
-  async getEmployees(userType: string) {
-    let query = supabase
-      .from('employee')
-      .select('*');
-
-    // Normal users can only see ACTIVE employees
-    if (userType === 'USER') {
-      query = query.eq('record_status', 'ACTIVE');
-    }
-
-    const { data, error } = await query.order('empno');
-    return { data, error };
+  // Get all employees (Sprint 1 Placeholder stub)
+  async getEmployees(userType) {
+    console.log("Sprint 1 Stub: getEmployees triggered for userType:", userType);
+    return { data: [], error: null };
   },
 
-  // Add new employee
-  async addEmployee(employee: any) {
-    const { data, error } = await supabase
-      .from('employee')
-      .insert(employee)
-      .select();
-    return { data, error };
+  // Add new employee (Sprint 1 Placeholder stub)
+  async addEmployee(employee) {
+    return { data: null, error: null };
   },
 
-  // Update employee
-  async updateEmployee(empno: string, updates: any) {
-    const { data, error } = await supabase
-      .from('employee')
-      .update(updates)
-      .eq('empno', empno)
-      .select();
-    return { data, error };
+  // Update employee (Sprint 1 Placeholder stub)
+  async updateEmployee(empno, updates) {
+    return { data: null, error: null };
   },
 
-  // Soft Delete Employee
-  async softDeleteEmployee(empno: string, userId: string) {
-    const stamp = `CASCADE-DEL ${new Date().toISOString()} ${userId}`;
-    const { data, error } = await supabase
-      .from('employee')
-      .update({ 
-        record_status: 'INACTIVE', 
-        stamp 
-      })
-      .eq('empno', empno);
-    return { data, error };
+  // Soft Delete Employee (Sprint 1 Placeholder stub)
+  async softDeleteEmployee(empno, userId) {
+    return { error: null };
   },
 
-  // Recover Employee
-  async recoverEmployee(empno: string, userId: string) {
-    const stamp = `CASCADE-RECOVER ${new Date().toISOString()} ${userId}`;
-    const { data, error } = await supabase
-      .from('employee')
-      .update({ 
-        record_status: 'ACTIVE', 
-        stamp 
-      })
-      .eq('empno', empno);
-    return { data, error };
+  // Recover Employee (Sprint 1 Placeholder stub)
+  async recoverEmployee(empno, userId) {
+    return { error: null };
   }
 };
