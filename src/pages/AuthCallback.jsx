@@ -9,21 +9,60 @@ import { supabase } from "../lib/supabase";
 export default function AuthCallback() {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        const status = session.user?.app_metadata?.record_status;
-        if (status === "ACTIVE") {
-          navigate("/employees");
-        } else {
-          supabase.auth.signOut();
-          navigate("/login?error=inactive");
+useEffect(() => {
+  async function handleCallback() {
+    // Wait for Supabase to process the OAuth hash from the URL
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("AUTH EVENT:", event);
+        console.log("SESSION:", session);
+
+        if (event === "SIGNED_IN" && session) {
+          subscription.unsubscribe();
+
+          const { data: profile, error: profileError } = await supabase
+            .from("users")
+            .select("record_status")
+            .eq("id", session.user.id)
+            .single();
+
+          console.log("PROFILE:", profile);
+          console.log("PROFILE ERROR:", profileError);
+
+          if (profile?.record_status === "ACTIVE") {
+            navigate("/employees");
+          } else {
+            await supabase.auth.signOut();
+            navigate("/login?error=inactive");
+          }
+        } else if (event === "SIGNED_OUT") {
+          subscription.unsubscribe();
+          navigate("/login");
         }
-      } else {
-        navigate("/login");
       }
-    });
-  }, [navigate]);
+    );
+
+    // Fallback — if already signed in
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      subscription.unsubscribe();
+      const { data: profile } = await supabase
+        .from("users")
+        .select("record_status")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profile?.record_status === "ACTIVE") {
+        navigate("/employees");
+      } else {
+        await supabase.auth.signOut();
+        navigate("/login?error=inactive");
+      }
+    }
+  }
+
+  handleCallback();
+}, [navigate]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: "#1B263B" }}>
