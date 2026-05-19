@@ -1,3 +1,9 @@
+/* ============== TAILWIND CSS ============== */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============== Your Custom Styles ============== */
 :root {
   --text: #6b6375;
   --text-h: #08060d;

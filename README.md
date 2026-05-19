@@ -31,20 +31,17 @@ npm run dev
 - M4 — Auth
 - M5 — QA / Docs (Eins Layupan)
 
-## Git Branching Strategy & Protection
-
-This project follows a strict branching strategy as defined in the Sprint Deliverables document.
+## Git Branching Strategy
 
 ### Protected Branches
 - `main` — Production branch (stable)
 - `dev` — Main integration branch (default)
 
 ### Branch Naming Convention
-| Prefix  | Purpose | Example |
-|---------|---------|---------|
+| Prefix | Purpose | Example |
+|--------|---------|---------|
 | `feat/` | New features | `feat/employee-api` |
 | `fix/` | Bug fixes | `fix/login-bug` |
-| `db/` | Database changes | `db/employee-rls-policies` |
 | `test/` | Testing | `test/51-rights-matrix` |
 | `docs/` | Documentation | `docs/user-manual` |
 | `chore/` | Config, tooling | `chore/github-branch-protection` |

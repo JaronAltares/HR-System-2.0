@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Pages
-import LoginPage from './pages/LoginPage.jsx';
+import LoginPage from './pages/LoginPage';
 import Employees from './pages/Employees';
 import JobHistory from './pages/JobHistory';
 import Jobs from './pages/Jobs';
@@ -16,11 +16,18 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
-        
+
+        {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
-            <Route path="/" element={<div>Welcome to Hope HR System</div>} />
+            <Route path="/" element={
+              <div className="p-10 text-center">
+                <h1 className="text-4xl font-bold text-gray-800">Welcome to Hope HR System</h1>
+              </div>
+            } />
+
             <Route path="/employees" element={<Employees />} />
             <Route path="/jobhistory" element={<JobHistory />} />
             <Route path="/jobs" element={<Jobs />} />
@@ -29,7 +36,8 @@ function App() {
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/login" />} />
+        {/* 404 */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );
