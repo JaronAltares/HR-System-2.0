@@ -2,15 +2,11 @@ import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 
-// Pages
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import AuthCallback from './pages/AuthCallback';
-import Employees from './pages/Employees';
-import JobHistory from './pages/JobHistory';
-import Jobs from './pages/Jobs';
-import Departments from './pages/Departments';
-import DeletedItems from './pages/DeletedItems';
+// Pages - Sprint 1 Active UI Pages
+import LoginPage from './pages/LoginPage.jsx';
+import RegisterPage from './pages/RegisterPage.jsx';
+import AuthCallback from './pages/AuthCallback.jsx';
+import Employees from './pages/Employees.jsx';
 
 // Components
 import AppShell from './components/AppShell';
@@ -91,15 +87,21 @@ function AppRoutes() {
       {/* PROTECTED ROUTES */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell onLogout={handleLogout} />}>
+          {/* Default root path redirects straight to Employees page */}
+          <Route path="/" element={<Navigate to="/employees" replace />} />
+          
+          {/* Active Sprint 1 Core View */}
           <Route path="/employees" element={<Employees />} />
-          <Route path="/jobhistory" element={<JobHistory />} />
-          <Route path="/jobs" element={<Jobs />} />
-          <Route path="/departments" element={<Departments />} />
-          <Route path="/deleted-items" element={<DeletedItems />} />
+          
+          {/* Sprint 1 Placeholder Route fallbacks to avoid crashes */}
+          <Route path="/jobhistory" element={<div>Job History — Coming in Sprint 2</div>} />
+          <Route path="/jobs" element={<div>Jobs catalogue — Coming in Sprint 2</div>} />
+          <Route path="/departments" element={<div>Departments — Coming in Sprint 2</div>} />
+          <Route path="/deleted-items" element={<div>Deleted Items — Coming in Sprint 2</div>} />
         </Route>
       </Route>
 
-      {/* 404 */}
+      {/* 404 Catch-All */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
