@@ -6,7 +6,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-// ─── Validation Helpers ────────────────────────────────────────────────────────
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -26,20 +25,13 @@ function validateForm(email, password) {
   return errors;
 }
 
-// ─── LoginPage Component ───────────────────────────────────────────────────────
-// Props (wired by M4):
-//   onEmailLogin(email, password) → async — called on form submit
-//   onGoogleLogin()               → async — called on Google button click
-//   authError                     → string | null — error from Supabase (e.g. INACTIVE account)
-
 export default function LoginPage({ onEmailLogin, onGoogleLogin, authError }) {
-  const [email, setEmail]       = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors]     = useState({});
+  const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ── Email Submit ─────────────────────────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault();
     const validationErrors = validateForm(email, password);
@@ -56,7 +48,6 @@ export default function LoginPage({ onEmailLogin, onGoogleLogin, authError }) {
     }
   }
 
-  // ── Google OAuth ──────────────────────────────────────────────────────────────
   async function handleGoogleLogin() {
     setIsLoading(true);
     try {
@@ -66,7 +57,6 @@ export default function LoginPage({ onEmailLogin, onGoogleLogin, authError }) {
     }
   }
 
-  // ── Field Change ──────────────────────────────────────────────────────────────
   function handleEmailChange(e) {
     setEmail(e.target.value);
     if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
@@ -76,118 +66,50 @@ export default function LoginPage({ onEmailLogin, onGoogleLogin, authError }) {
     if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen flex">
-
-      {/* ── LEFT PANEL — Brand ─────────────────────────────────────────────── */}
-      <div
-        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden"
-        style={{ backgroundColor: "#1B263B" }}
-      >
-        {/* Decorative teal accent circles */}
-        <div
-          className="absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-10"
-          style={{ backgroundColor: "#59ABBD" }}
-        />
-        <div
-          className="absolute bottom-12 right-0 w-64 h-64 rounded-full opacity-[0.07]"
-          style={{ backgroundColor: "#59ABBD" }}
-        />
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                     w-[500px] h-[500px] rounded-full opacity-[0.04] border-2"
-          style={{ borderColor: "#59ABBD" }}
-        />
-
-        {/* Logo */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden" style={{ backgroundColor: "#1B263B" }}>
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-10" style={{ backgroundColor: "#59ABBD" }} />
+        <div className="absolute bottom-12 right-0 w-64 h-64 rounded-full opacity-[0.07]" style={{ backgroundColor: "#59ABBD" }} />
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg"
-              style={{ backgroundColor: "#59ABBD", color: "#1B263B" }}
-            >
-              H
-            </div>
-            <span className="text-white text-xl font-semibold tracking-wide">
-              Hope, Inc.
-            </span>
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" style={{ backgroundColor: "#59ABBD", color: "#1B263B" }}>H</div>
+            <span className="text-white text-xl font-semibold tracking-wide">Hope, Inc.</span>
           </div>
         </div>
-
-        {/* Center Content */}
         <div className="relative z-10 space-y-6">
-          <h1
-            className="text-5xl font-bold leading-tight text-white"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-          >
-            Human
-            <br />
-            Resource
-            <br />
-            <span style={{ color: "#59ABBD" }}>System</span>
+          <h1 className="text-5xl font-bold leading-tight text-white" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+            Human<br />Resource<br /><span style={{ color: "#59ABBD" }}>System</span>
           </h1>
           <p className="text-base leading-relaxed max-w-xs" style={{ color: "#9FB3C8" }}>
-            Centralized employee management, job history tracking, and
-            department oversight — all in one secure platform.
+            Centralized employee management, job history tracking, and department oversight — all in one secure platform.
           </p>
-
-          {/* Stats strip */}
           <div className="flex gap-8 pt-4">
-            {[
-              { label: "Employees", value: "31+" },
-              { label: "Departments", value: "8" },
-              { label: "Job Roles", value: "14" },
-            ].map(({ label, value }) => (
+            {[{ label: "Employees", value: "31+" }, { label: "Departments", value: "8" }, { label: "Job Roles", value: "14" }].map(({ label, value }) => (
               <div key={label}>
                 <p className="text-2xl font-bold text-white">{value}</p>
-                <p className="text-xs tracking-widest uppercase" style={{ color: "#59ABBD" }}>
-                  {label}
-                </p>
+                <p className="text-xs tracking-widest uppercase" style={{ color: "#59ABBD" }}>{label}</p>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Footer */}
         <div className="relative z-10">
-          <p className="text-xs" style={{ color: "#4A6080" }}>
-            © 2025–2026 Hope, Inc. · New Era University Capstone
-          </p>
+          <p className="text-xs" style={{ color: "#4A6080" }}>© 2025–2026 Hope, Inc. · New Era University Capstone</p>
         </div>
       </div>
 
-      {/* ── RIGHT PANEL — Form ─────────────────────────────────────────────── */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 bg-gray-50">
         <div className="w-full max-w-md space-y-8">
-
-          {/* Mobile-only logo */}
           <div className="flex items-center gap-3 lg:hidden">
-            <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center font-bold"
-              style={{ backgroundColor: "#1B263B", color: "#59ABBD" }}
-            >
-              H
-            </div>
-            <span className="font-semibold text-lg" style={{ color: "#1B263B" }}>
-              Hope, Inc. · HRS
-            </span>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center font-bold" style={{ backgroundColor: "#1B263B", color: "#59ABBD" }}>H</div>
+            <span className="font-semibold text-lg" style={{ color: "#1B263B" }}>Hope, Inc. · HRS</span>
           </div>
 
-          {/* Heading */}
           <div className="space-y-1">
-            <h2
-              className="text-3xl font-bold"
-              style={{ color: "#1B263B", fontFamily: "'DM Serif Display', Georgia, serif" }}
-            >
-              Welcome back
-            </h2>
-            <p className="text-sm text-gray-500">
-              Sign in to access the HR portal.
-            </p>
+            <h2 className="text-3xl font-bold" style={{ color: "#1B263B", fontFamily: "'DM Serif Display', Georgia, serif" }}>Welcome back</h2>
+            <p className="text-sm text-gray-500">Sign in to access the HR portal.</p>
           </div>
 
-          {/* ── Auth Error Banner (from Supabase / M4) ─────────────────────── */}
           {authError && (
             <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
               <span className="mt-0.5 text-red-500 shrink-0">
@@ -204,20 +126,8 @@ export default function LoginPage({ onEmailLogin, onGoogleLogin, authError }) {
             </div>
           )}
 
-          {/* ── Google OAuth Button ─────────────────────────────────────────── */}
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 rounded-lg border
-                       border-gray-300 bg-white px-4 py-3 text-sm font-medium
-                       text-gray-700 shadow-sm transition-all duration-200
-                       hover:border-gray-400 hover:shadow-md
-                       disabled:cursor-not-allowed disabled:opacity-60
-                       focus:outline-none focus:ring-2 focus:ring-offset-2"
-            style={{ "--tw-ring-color": "#59ABBD" }}
-          >
-            {/* Google SVG */}
+          <button type="button" onClick={handleGoogleLogin} disabled={isLoading}
+            className="w-full flex items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-400 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60">
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -239,17 +149,13 @@ export default function LoginPage({ onEmailLogin, onGoogleLogin, authError }) {
             Sign in with Google
           </button>
 
-          {/* ── Divider ─────────────────────────────────────────────────────── */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-gray-200" />
             <span className="text-xs text-gray-400 uppercase tracking-widest">or</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 
-          {/* ── Email / Password Form ────────────────────────────────────────── */}
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
-
-            {/* Email Field */}
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
@@ -308,15 +214,8 @@ export default function LoginPage({ onEmailLogin, onGoogleLogin, authError }) {
               )}
             </div>
 
-            {/* Password Field */}
             <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium"
-                style={{ color: "#1B263B" }}
-              >
-                Password
-              </label>
+              <label htmlFor="password" className="block text-sm font-medium" style={{ color: "#1B263B" }}>Password</label>
               <div className="relative">
                 <input
                   id="password"
@@ -429,26 +328,14 @@ export default function LoginPage({ onEmailLogin, onGoogleLogin, authError }) {
             </button>
           </form>
 
-          {/* ── Register Link ────────────────────────────────────────────────── */}
           <p className="text-center text-sm text-gray-500">
             Don&apos;t have an account?{" "}
-            <Link
-              to="/register"
-              className="font-medium transition-colors duration-150 hover:underline"
-              style={{ color: "#59ABBD" }}
-            >
-              Register here
-            </Link>
+            <Link to="/register" className="font-medium transition-colors duration-150 hover:underline" style={{ color: "#59ABBD" }}>Register here</Link>
           </p>
 
-          {/* ── Pending Activation Note ──────────────────────────────────────── */}
           <div className="rounded-lg border border-dashed border-gray-200 bg-white px-4 py-3">
-            <p className="text-xs text-center text-gray-400">
-              New accounts require activation by an HR Administrator
-              before you can sign in.
-            </p>
+            <p className="text-xs text-center text-gray-400">New accounts require activation by an HR Administrator before you can sign in.</p>
           </div>
-
         </div>
       </div>
     </div>

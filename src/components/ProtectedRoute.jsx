@@ -1,19 +1,41 @@
+import { useState, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
-function ProtectedRoute({ children }) {
-  // For now: Simple check (we'll improve with AuthContext later)
-  const user = supabase.auth.getUser(); // This is async, we'll handle it properly soon
+function ProtectedRoute() {
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
 
-  // Temporary: Allow access for development
-  // TODO: Replace with real auth check in M4
-  const isAuthenticated = true; // Change this later
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        setIsAuthenticated(false);
+        return;
+      }
+      const status = session.user?.app_metadata?.record_status;
+      setIsAuthenticated(status === 'ACTIVE');
+    });
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!session) {
+          setIsAuthenticated(false);
+          return;
+        }
+        const status = session.user?.app_metadata?.record_status;
+        setIsAuthenticated(status === 'ACTIVE');
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (isAuthenticated === null) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <p className="text-gray-500 text-sm">Loading...</p>
+    </div>;
   }
 
-  return children ? children : <Outlet />;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
 export default ProtectedRoute;
