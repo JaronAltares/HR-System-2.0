@@ -1,75 +1,63 @@
 import { supabase } from '../lib/supabase';
 
-const employeeService = {
-  // Get Employees (filtered by user rights)
-  async getEmployees(userType) {
+export const employeeService = {
+  // Get all employees (with filter for USER)
+  async getEmployees(userType: string) {
     let query = supabase
       .from('employee')
-      .select('*')
-      .order('empno', { ascending: true });
+      .select('*');
 
-    // USER can only see ACTIVE records
+    // Normal users can only see ACTIVE employees
     if (userType === 'USER') {
       query = query.eq('record_status', 'ACTIVE');
     }
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
+    const { data, error } = await query.order('empno');
+    return { data, error };
   },
 
-  // Add New Employee
-  async addEmployee(employeeData) {
+  // Add new employee
+  async addEmployee(employee: any) {
     const { data, error } = await supabase
       .from('employee')
-      .insert([employeeData])
-      .select()
-      .single();
-    if (error) throw error;
-    return data;
+      .insert(employee)
+      .select();
+    return { data, error };
   },
 
-  // Update Employee
-  async updateEmployee(empno, updates) {
+  // Update employee
+  async updateEmployee(empno: string, updates: any) {
     const { data, error } = await supabase
       .from('employee')
       .update(updates)
       .eq('empno', empno)
-      .select()
-      .single();
-    if (error) throw error;
-    return data;
+      .select();
+    return { data, error };
   },
 
   // Soft Delete Employee
-  async softDeleteEmployee(empno) {
+  async softDeleteEmployee(empno: string, userId: string) {
+    const stamp = `CASCADE-DEL ${new Date().toISOString()} ${userId}`;
     const { data, error } = await supabase
       .from('employee')
       .update({ 
-        record_status: 'INACTIVE',
-        stamp: `DELETED-${new Date().toISOString()}`
+        record_status: 'INACTIVE', 
+        stamp 
       })
-      .eq('empno', empno)
-      .select()
-      .single();
-    if (error) throw error;
-    return data;
+      .eq('empno', empno);
+    return { data, error };
   },
 
   // Recover Employee
-  async recoverEmployee(empno) {
+  async recoverEmployee(empno: string, userId: string) {
+    const stamp = `CASCADE-RECOVER ${new Date().toISOString()} ${userId}`;
     const { data, error } = await supabase
       .from('employee')
       .update({ 
-        record_status: 'ACTIVE',
-        stamp: `RECOVERED-${new Date().toISOString()}`
+        record_status: 'ACTIVE', 
+        stamp 
       })
-      .eq('empno', empno)
-      .select()
-      .single();
-    if (error) throw error;
-    return data;
+      .eq('empno', empno);
+    return { data, error };
   }
 };
-
-export default employeeService;
