@@ -1,16 +1,27 @@
-# React + Vite
+# HopeHRS — HR System 2.0
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Human Resource System built with React, Vite, Supabase, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## How to Run This Project
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 1. Clone the repo
 
-## React Compiler
+### 2. Install packages
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 3. Set up your .env file
+- Make a new file called `.env` in the root folder
+- Add these inside:
 
-## Expanding the ESLint configuration
+### 4. Start the app
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Tech Stack
+- React + Vite
+- Supabase (auth + database)
+- Tailwind CSS
+
+## Team Members
+- M1 — Project Lead / Full Stack
+- M2 — Frontend
+- M3 — Backend
+- M4 — Auth
+- M5 — QA / Docs (Eins Layupan)
