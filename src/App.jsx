@@ -19,6 +19,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 function AppRoutes() {
   const navigate = useNavigate();
   const [authError, setAuthError] = useState(null);
+  const [authSuccess, setAuthSuccess] = useState(null);
 
   const handleEmailLogin = async (email, password) => {
     setAuthError(null);
@@ -27,7 +28,6 @@ function AppRoutes() {
       setAuthError(error.message);
       return;
     }
-    // Login Guard — check if ACTIVE
     const { data: { user } } = await supabase.auth.getUser();
     const status = user?.app_metadata?.record_status;
     if (status !== 'ACTIVE') {
@@ -48,6 +48,7 @@ function AppRoutes() {
 
   const handleEmailRegister = async (firstName, lastName, username, email, password) => {
     setAuthError(null);
+    setAuthSuccess(null);
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -55,7 +56,11 @@ function AppRoutes() {
         data: { first_name: firstName, last_name: lastName, user_name: username }
       }
     });
-    if (error) setAuthError(error.message);
+    if (error) {
+      setAuthError(error.message);
+    } else {
+      setAuthSuccess("Account created! Please wait for an Admin to activate your account.");
+    }
   };
 
   const handleLogout = async () => {
@@ -78,6 +83,7 @@ function AppRoutes() {
           onEmailRegister={handleEmailRegister}
           onGoogleRegister={handleGoogleLogin}
           authError={authError}
+          authSuccess={authSuccess}
         />
       } />
       <Route path="/auth/callback" element={<AuthCallback />} />
