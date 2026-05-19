@@ -1,56 +1,75 @@
 import { supabase } from '../lib/supabase';
 
-export const jobService = {
-  // Get all jobs
-  async getJobs(userType: string) {
+const departmentService = {
+
+  // Get All Departments
+  async getDepartments(userType) {
     let query = supabase
-      .from('job')
-      .select('*');
+      .from('department')
+      .select('*')
+      .order('deptCode');
 
     if (userType === 'USER') {
       query = query.eq('record_status', 'ACTIVE');
     }
 
-    const { data, error } = await query.order('jobCode');
-    return { data, error };
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
   },
 
-  // Add new job
-  async addJob(job: any) {
+  // Add New Department
+  async addDepartment(deptData) {
     const { data, error } = await supabase
-      .from('job')
-      .insert(job)
-      .select();
-    return { data, error };
+      .from('department')
+      .insert([deptData])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   },
 
-  // Update job
-  async updateJob(jobCode: string, updates: any) {
+  // Update Department
+  async updateDepartment(deptCode, updates) {
     const { data, error } = await supabase
-      .from('job')
+      .from('department')
       .update(updates)
-      .eq('jobCode', jobCode)
-      .select();
-    return { data, error };
+      .eq('deptCode', deptCode)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   },
 
-  // Soft Delete
-  async softDeleteJob(jobCode: string, userId: string) {
-    const stamp = `CASCADE-DEL ${new Date().toISOString()} ${userId}`;
+  // Soft Delete Department
+  async softDeleteDepartment(deptCode) {
     const { data, error } = await supabase
-      .from('job')
-      .update({ record_status: 'INACTIVE', stamp })
-      .eq('jobCode', jobCode);
-    return { data, error };
+      .from('department')
+      .update({ 
+        record_status: 'INACTIVE',
+        stamp: `DELETED-${new Date().toISOString()}`
+      })
+      .eq('deptCode', deptCode)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   },
 
-  // Recover
-  async recoverJob(jobCode: string, userId: string) {
-    const stamp = `CASCADE-RECOVER ${new Date().toISOString()} ${userId}`;
+  // Recover Department
+  async recoverDepartment(deptCode) {
     const { data, error } = await supabase
-      .from('job')
-      .update({ record_status: 'ACTIVE', stamp })
-      .eq('jobCode', jobCode);
-    return { data, error };
+      .from('department')
+      .update({ 
+        record_status: 'ACTIVE',
+        stamp: `RECOVERED-${new Date().toISOString()}`
+      })
+      .eq('deptCode', deptCode)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   }
 };
+
+export default departmentService;
