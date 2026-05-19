@@ -25,11 +25,11 @@ npm run dev
 - Tailwind CSS
 
 ## Team Members
-- M1 — Project Lead / Full Stack
-- M2 — Frontend
-- M3 — Backend
-- M4 — Auth
-- M5 — QA / Docs (Eins Layupan)
+- M1 — Jaron Altares (Project Lead / Full Stack)
+- M2 — Clark De Leon (Frontend)
+- M3 — Axle Olimpo (Backend)
+- M4 — Fred Sapinoro (Auth)
+- M5 — Eins Layupan (QA / Docs)
 
 ## Git Branching Strategy
 
