@@ -1,39 +1,3 @@
-<<<<<<< HEAD
-import { Link } from "react-router-dom";
-
-function LoginPage() {
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center mb-8 text-blue-600">
-          HopeHRS
-        </h1>
-        
-        <h2 className="text-xl text-center mb-6">Login</h2>
-
-        <div className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500"
-          />
-          <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700">
-            Login
-          </button>
-        </div>
-
-        <p className="text-center mt-6 text-gray-600">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
-            Register
-          </Link>
-        </p>
-=======
 // src/pages/LoginPage.jsx
 // M2 – PR-01: feat/ui-login-page
 // UI ONLY — Auth wiring (signIn, signInWithOAuth) is M4's responsibility.
@@ -174,7 +138,7 @@ export default function LoginPage({ onEmailLogin, onGoogleLogin, authError }) {
               <label htmlFor="email" className="block text-sm font-medium" style={{ color: "#1B263B" }}>Email Address</label>
               <input id="email" type="email" autoComplete="email" value={email} onChange={handleEmailChange} placeholder="you@hope.com" disabled={isLoading}
                 className={`w-full rounded-lg border px-4 py-3 text-sm text-gray-900 bg-white shadow-sm placeholder-gray-400 transition-all duration-200 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed ${errors.email ? "border-red-400" : "border-gray-300"}`} />
-              {errors.email && <p className="text-xs text-red-600">{errors.email}</p>}
+              {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
             </div>
 
             <div className="space-y-1.5">
@@ -186,7 +150,7 @@ export default function LoginPage({ onEmailLogin, onGoogleLogin, authError }) {
                   {showPassword ? "🙈" : "👁"}
                 </button>
               </div>
-              {errors.password && <p className="text-xs text-red-600">{errors.password}</p>}
+              {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
             </div>
 
             <button type="submit" disabled={isLoading}
@@ -205,7 +169,6 @@ export default function LoginPage({ onEmailLogin, onGoogleLogin, authError }) {
             <p className="text-xs text-center text-gray-400">New accounts require activation by an HR Administrator before you can sign in.</p>
           </div>
         </div>
->>>>>>> 75907bf20ec25d4ce781884b318e6022495a7b0e
       </div>
     </div>
   );
