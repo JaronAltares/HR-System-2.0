@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://lcruwvfrwqmwbvmuzgtc.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxjcnV3dmZyd3Ftd2J2bXV6Z3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NzM0OTYsImV4cCI6MjA5NDI0OTQ5Nn0.9hCPzSnH0caugkXUJPYR304OAck1ZKxuvqyyD3yLMGE'
+// FIXED: Utilizing Vite dynamic environment runtime variables to avoid repository history leaks
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
