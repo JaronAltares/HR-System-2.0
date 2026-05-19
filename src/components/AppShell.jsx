@@ -1,30 +1,24 @@
 // src/components/AppShell.jsx
 // M2 – PR-03: feat/ui-app-shell
-// Layout wrapper for all protected pages.
-// Composes Sidebar + Navbar + scrollable content area.
-//
-// Props (wired by M4):
-//   user      → { name: string, email: string, role: string }
-//   onLogout  → async function — Supabase signOut()
-//   children  → page content rendered in the main area
+// Layout wrapper for all protected pages using React Router DOM v6 nested outlets.
 
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Outlet } from "react-router-dom"; // ✅ FIXED: Imported Outlet from the router library
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 
 // ─── Route → Page Title Map ────────────────────────────────────────────────────
 const PAGE_TITLES = {
-  "/employees":    "Employees",
-  "/jobhistory":   "Job History",
-  "/jobs":         "Jobs",
-  "/departments":  "Departments",
-  "/admin":        "Admin Panel",
+  "/employees":     "Employees",
+  "/jobhistory":    "Job History",
+  "/jobs":          "Jobs",
+  "/departments":   "Departments",
+  "/admin":         "Admin Panel",
   "/deleted-items":"Deleted Items",
 };
 
 // ─── AppShell Component ────────────────────────────────────────────────────────
-export default function AppShell({ user, onLogout, children }) {
+export default function AppShell({ user, onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location  = useLocation();
   const pageTitle = PAGE_TITLES[location.pathname] ?? "";
@@ -51,7 +45,8 @@ export default function AppShell({ user, onLogout, children }) {
 
         {/* ── Page Content ─────────────────────────────────────────────── */}
         <main className="flex-1 overflow-y-auto p-6">
-          {children}
+          {/* ✅ FIXED: Replaced {children} with <Outlet /> so nested paths can render smoothly */}
+          <Outlet /> 
         </main>
 
       </div>
