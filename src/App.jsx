@@ -1,7 +1,6 @@
 // src/App.jsx
 // M4 — feat/auth-email-signup + feat/auth-google-oauth
 // Wires email signIn, signUp, and Google OAuth to Login/Register pages
-// src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { supabase } from './lib/supabase';
@@ -12,6 +11,10 @@ import RegisterPage from './pages/RegisterPage';
 import AuthCallback from './pages/AuthCallback';
 import Employees from './pages/Employees';
 import JobHistory from './pages/JobHistory';
+import Jobs from './pages/Jobs';
+import Departments from './pages/Departments';
+import Admin from './pages/Admin';
+import DeletedItems from './pages/DeletedItems';
 
 // Components
 import AppShell from './components/AppShell';
@@ -80,10 +83,10 @@ function App() {
               <Route path="/" element={<Navigate to="/employees" replace />} />
               <Route path="/employees" element={<Employees />} />
               <Route path="/jobhistory" element={<JobHistory />} />
-              <Route path="/jobs" element={<div className="p-8 text-gray-500">Jobs — Coming in Sprint 2</div>} />
-              <Route path="/departments" element={<div className="p-8 text-gray-500">Departments — Coming in Sprint 2</div>} />
-              <Route path="/admin" element={<div className="p-8 text-gray-500">Admin — Coming in Sprint 2</div>} />
-              <Route path="/deleted-items" element={<div className="p-8 text-gray-500">Deleted Items — Coming in Sprint 2</div>} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/departments" element={<Departments />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/deleted-items" element={<DeletedItems />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
