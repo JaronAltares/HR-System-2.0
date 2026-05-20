@@ -42,7 +42,7 @@ export const signInWithEmail = async (email, password) => {
   const { data: userRow, error: userErr } = await supabase
     .from("user")
     .select("record_status")
-    .eq("userId", data.user.id)
+    .eq("userid", data.user.id)
     .single();
 
   if (userErr || !userRow || userRow.record_status !== "ACTIVE") {

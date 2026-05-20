@@ -26,7 +26,7 @@ export default function ProtectedRoute() {
         const { data: userRow, error } = await supabase
           .from("user")
           .select("record_status")
-          .eq("userId", session.user.id)
+          .eq("userid", session.user.id)
           .single();
 
         if (error || !userRow || userRow.record_status !== "ACTIVE") {
