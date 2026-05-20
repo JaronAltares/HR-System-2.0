@@ -1,4 +1,6 @@
 // src/App.jsx
+// M4 — feat/auth-email-signup + feat/auth-google-oauth
+// Wires email signIn, signUp, and Google OAuth to Login/Register pages
 // M4 — feat/auth-email-signup + feat/auth-google-oauth + feat/rights-enforcement
 // Wires email signIn, signUp, Google OAuth, and UserRightsProvider
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -12,6 +14,10 @@ import RegisterPage from './pages/RegisterPage';
 import AuthCallback from './pages/AuthCallback';
 import Employees from './pages/Employees';
 import JobHistory from './pages/JobHistory';
+import Jobs from './pages/Jobs';
+import Departments from './pages/Departments';
+import Admin from './pages/Admin';
+import DeletedItems from './pages/DeletedItems';
 
 // Components
 import AppShell from './components/AppShell';
@@ -66,6 +72,24 @@ function App() {
 
   return (
     <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={
+            <LoginPage onEmailLogin={handleEmailLogin} onGoogleLogin={handleGoogleLogin} authError={authError} />
+          } />
+          <Route path="/register" element={
+            <RegisterPage onEmailRegister={handleEmailRegister} onGoogleRegister={handleGoogleLogin} authError={authError} authSuccess={authSuccess} />
+          } />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppWithShell />}>
+              <Route path="/" element={<Navigate to="/employees" replace />} />
+              <Route path="/employees" element={<Employees />} />
+              <Route path="/jobhistory" element={<JobHistory />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/departments" element={<Departments />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/deleted-items" element={<DeletedItems />} />
       <UserRightsProvider>
         <Router>
           <Routes>
