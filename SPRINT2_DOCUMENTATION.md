@@ -1,4 +1,3 @@
-Markdown
 # Sprint 2 System Documentation & Handoff Specifications
 **Module:** M5 — Documentation, Architecture Verification, and Systems Testing Lead  
 **Project Version:** HR-System-2.0  
