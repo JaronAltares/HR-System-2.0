@@ -24,8 +24,8 @@ export function useCurrentUser() {
         // Fetch real user row — PK is `userId`, not `id`
         const { data: userRow, error } = await supabase
           .from("user")
-          .select("userId, email, username, user_type, record_status")
-          .eq("userId", user.id)
+          .select("userid, email, username, user_type, record_status")
+          .eq("userid", user.id)
           .single();
 
         if (error || !userRow) {
@@ -43,7 +43,7 @@ export function useCurrentUser() {
           userRow.email;
 
         setProfile({
-          id: userRow.userId,
+          id: userRow.userid,
           email: userRow.email || user.email,
           user_type: userRow.user_type,   // real value from DB: USER | ADMIN | SUPERADMIN
           record_status: userRow.record_status,

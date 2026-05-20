@@ -27,8 +27,8 @@ export function useRights(rightName) {
       // Look up the userId from our user table (auth.uid maps to userId)
       const { data: userRow, error: userErr } = await supabase
         .from("user")
-        .select("userId, user_type, record_status")
-        .eq("userId", user.id)
+        .select("userid, user_type, record_status")
+        .eq("userid", user.id)
         .single();
 
       if (userErr || !userRow || userRow.record_status !== "ACTIVE") {
@@ -46,7 +46,7 @@ export function useRights(rightName) {
       const { data, error } = await supabase
         .from("UserModule_Rights")
         .select("right_value")
-        .eq("userId", userRow.userId)
+        .eq("userid", userRow.userid)
         .eq("right_code", rightName)
         .single();
 
