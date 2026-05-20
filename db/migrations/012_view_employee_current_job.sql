@@ -3,9 +3,12 @@
 -- View: employee_current_job
 -- Returns the latest active jobhistory row per employee,
 -- joined with job.jobdesc and department.deptname.
+-- FIX: Added security_invoker = true so RLS policies are respected.
 -- ============================================================
 
-CREATE OR REPLACE VIEW public.employee_current_job AS
+CREATE OR REPLACE VIEW public.employee_current_job
+WITH (security_invoker = true)
+AS
 SELECT
   e.empno,
   e.lastname,
