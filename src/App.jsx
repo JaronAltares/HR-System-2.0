@@ -1,6 +1,4 @@
 // src/App.jsx
-// M4 — feat/auth-email-signup + feat/auth-google-oauth
-// Wires email signIn, signUp, and Google OAuth to Login/Register pages
 // M4 — feat/auth-email-signup + feat/auth-google-oauth + feat/rights-enforcement
 // Wires email signIn, signUp, Google OAuth, and UserRightsProvider
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -72,27 +70,10 @@ function App() {
 
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={
-            <LoginPage onEmailLogin={handleEmailLogin} onGoogleLogin={handleGoogleLogin} authError={authError} />
-          } />
-          <Route path="/register" element={
-            <RegisterPage onEmailRegister={handleEmailRegister} onGoogleRegister={handleGoogleLogin} authError={authError} authSuccess={authSuccess} />
-          } />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route element={<ProtectedRoute />}>
-            <Route element={<AppWithShell />}>
-              <Route path="/" element={<Navigate to="/employees" replace />} />
-              <Route path="/employees" element={<Employees />} />
-              <Route path="/jobhistory" element={<JobHistory />} />
-              <Route path="/jobs" element={<Jobs />} />
-              <Route path="/departments" element={<Departments />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/deleted-items" element={<DeletedItems />} />
       <UserRightsProvider>
         <Router>
           <Routes>
+            {/* Public Routes */}
             <Route path="/login" element={
               <LoginPage onEmailLogin={handleEmailLogin} onGoogleLogin={handleGoogleLogin} authError={authError} />
             } />
@@ -100,17 +81,21 @@ function App() {
               <RegisterPage onEmailRegister={handleEmailRegister} onGoogleRegister={handleGoogleLogin} authError={authError} authSuccess={authSuccess} />
             } />
             <Route path="/auth/callback" element={<AuthCallback />} />
+
+            {/* Guarded Application Routes */}
             <Route element={<ProtectedRoute />}>
               <Route element={<AppWithShell />}>
                 <Route path="/" element={<Navigate to="/employees" replace />} />
                 <Route path="/employees" element={<Employees />} />
                 <Route path="/jobhistory" element={<JobHistory />} />
-                <Route path="/jobs" element={<div className="p-8 text-gray-500">Jobs — Coming in Sprint 2</div>} />
-                <Route path="/departments" element={<div className="p-8 text-gray-500">Departments — Coming in Sprint 2</div>} />
-                <Route path="/admin" element={<div className="p-8 text-gray-500">Admin — Coming in Sprint 2</div>} />
-                <Route path="/deleted-items" element={<div className="p-8 text-gray-500">Deleted Items — Coming in Sprint 2</div>} />
+                <Route path="/jobs" element={<Jobs />} />
+                <Route path="/departments" element={<Departments />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/deleted-items" element={<DeletedItems />} />
               </Route>
             </Route>
+
+            {/* Fallback Catch-all */}
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Router>

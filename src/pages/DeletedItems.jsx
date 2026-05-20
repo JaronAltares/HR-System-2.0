@@ -1,7 +1,7 @@
 // src/pages/DeletedItems.jsx
 // M2 — Sprint 2 PR-03: feat/ui-job-dept
 // Uses:
-//   M4 → useCurrentUser()   gets user_type for ADMIN/SUPERADMIN gating
+//   M4 → useCurrentUser()    gets user_type for ADMIN/SUPERADMIN gating
 //   M1 → all 4 services     recover functions
 
 import { useState, useEffect } from "react";
@@ -9,7 +9,7 @@ import { useCurrentUser }    from "../hooks/useCurrentUser";
 import employeeService       from "../services/employeeService";
 import jobHistoryService     from "../services/jobHistoryService";
 import jobService            from "../services/jobService";
-import deptService           from "../services/deptService";
+import { departmentService } from "../services/departmentService"; // FIXED: Changed back to named export matching your file structure
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function fmt(dateStr) {
@@ -70,7 +70,8 @@ function DeletedEmployees({ currentUser, onCountChange }) {
       setRows(inactive);
       onCountChange(inactive.length);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load deleted employees:", err);
+      onCountChange(0);
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +82,8 @@ function DeletedEmployees({ currentUser, onCountChange }) {
     try {
       await employeeService.recoverEmployee(empno);
       await loadAll();
+    } catch (err) {
+      console.error("Recovery failed:", err);
     } finally {
       setRecovering(null);
     }
@@ -90,7 +93,7 @@ function DeletedEmployees({ currentUser, onCountChange }) {
   if (rows.length === 0) return <EmptyState label="deleted employees" />;
 
   return (
-    <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+    <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm bg-white">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -152,25 +155,32 @@ function DeletedJobHistory({ currentUser, onCountChange }) {
   async function loadAll() {
     setIsLoading(true);
     try {
-      const data = await jobHistoryService.getJobHistory(
+      const { data } = await jobHistoryService.getJobHistory(
         null, currentUser?.user_type ?? "ADMIN"
       );
       const inactive = (data ?? []).filter(r => r.record_status === "INACTIVE");
       setRows(inactive);
       onCountChange(inactive.length);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load deleted job history:", err);
+      onCountChange(0);
     } finally {
       setIsLoading(false);
     }
   }
 
   async function handleRecover(row) {
-    const key = `${row.empNo}-${row.jobCode}-${row.effDate}`;
+    const empId = row.empno;
+    const jobId = row.jobcode;
+    const effDt = row.effdate;
+
+    const key = `${empId}-${jobId}-${effDt}`;
     setRecovering(key);
     try {
-      await jobHistoryService.recoverJobHistory(row.empNo, row.jobCode, row.effDate);
+      await jobHistoryService.recoverJobHistory(empId, jobId, effDt);
       await loadAll();
+    } catch (err) {
+      console.error("Recovery failed:", err);
     } finally {
       setRecovering(null);
     }
@@ -180,7 +190,7 @@ function DeletedJobHistory({ currentUser, onCountChange }) {
   if (rows.length === 0) return <EmptyState label="deleted job history" />;
 
   return (
-    <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+    <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm bg-white">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -197,7 +207,11 @@ function DeletedJobHistory({ currentUser, onCountChange }) {
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
             {rows.map((row, i) => {
-              const key = `${row.empNo}-${row.jobCode}-${row.effDate}`;
+              const empId = row.empno;
+              const jobId = row.jobcode;
+              const effDt = row.effdate;
+              const key = `${empId}-${jobId}-${effDt}`;
+              
               return (
                 <tr key={key}
                   style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#F9FAFB" }}
@@ -207,11 +221,11 @@ function DeletedJobHistory({ currentUser, onCountChange }) {
                       i % 2 === 0 ? "#fff" : "#F9FAFB";
                   }}>
                   <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"
-                    style={{ color: "#59ABBD" }}>{row.empNo}</td>
-                  <td className="px-4 py-3 text-gray-700">{row.jobCode}</td>
-                  <td className="px-4 py-3 text-gray-500">{row.deptCode}</td>
+                    style={{ color: "#59ABBD" }}>{empId}</td>
+                  <td className="px-4 py-3 text-gray-700">{jobId}</td>
+                  <td className="px-4 py-3 text-gray-500">{row.deptcode}</td>
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                    {fmt(row.effDate)}
+                    {fmt(effDt)}
                   </td>
                   <td className="px-4 py-3 text-gray-500">
                     {row.salary ?? "—"}
@@ -247,12 +261,13 @@ function DeletedJobs({ currentUser, onCountChange }) {
   async function loadAll() {
     setIsLoading(true);
     try {
-      const data = await jobService.getJobs(currentUser?.user_type ?? "ADMIN");
+      const { data } = await jobService.getJobs(currentUser?.user_type ?? "ADMIN");
       const inactive = (data ?? []).filter(r => r.record_status === "INACTIVE");
       setRows(inactive);
       onCountChange(inactive.length);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load deleted jobs:", err);
+      onCountChange(0);
     } finally {
       setIsLoading(false);
     }
@@ -263,6 +278,8 @@ function DeletedJobs({ currentUser, onCountChange }) {
     try {
       await jobService.recoverJob(jobCode);
       await loadAll();
+    } catch (err) {
+      console.error("Recovery failed:", err);
     } finally {
       setRecovering(null);
     }
@@ -272,7 +289,7 @@ function DeletedJobs({ currentUser, onCountChange }) {
   if (rows.length === 0) return <EmptyState label="deleted jobs" />;
 
   return (
-    <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+    <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm bg-white">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -287,29 +304,32 @@ function DeletedJobs({ currentUser, onCountChange }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {rows.map((row, i) => (
-              <tr key={row.jobCode}
-                style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#F9FAFB" }}
-                onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#FEF2F2"; }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.backgroundColor =
-                    i % 2 === 0 ? "#fff" : "#F9FAFB";
-                }}>
-                <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"
-                  style={{ color: "#59ABBD" }}>{row.jobCode}</td>
-                <td className="px-4 py-3 text-gray-700">{row.jobDesc}</td>
-                <td className="px-4 py-3 text-xs text-gray-400
-                               max-w-[160px] truncate" title={row.stamp}>
-                  {row.stamp ?? "—"}
-                </td>
-                <td className="px-4 py-3">
-                  <RecoverBtn
-                    onClick={() => handleRecover(row.jobCode)}
-                    loading={recovering === row.jobCode}
-                  />
-                </td>
-              </tr>
-            ))}
+            {rows.map((row, i) => {
+              const currentJobCode = row.jobcode;
+              return (
+                <tr key={currentJobCode}
+                  style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#F9FAFB" }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#FEF2F2"; }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.backgroundColor =
+                      i % 2 === 0 ? "#fff" : "#F9FAFB";
+                  }}>
+                  <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"
+                    style={{ color: "#59ABBD" }}>{currentJobCode}</td>
+                  <td className="px-4 py-3 text-gray-700">{row.jobdesc}</td>
+                  <td className="px-4 py-3 text-xs text-gray-400
+                                 max-w-[160px] truncate" title={row.stamp}>
+                    {row.stamp ?? "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <RecoverBtn
+                      onClick={() => handleRecover(currentJobCode)}
+                      loading={recovering === currentJobCode}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -328,12 +348,13 @@ function DeletedDepts({ currentUser, onCountChange }) {
   async function loadAll() {
     setIsLoading(true);
     try {
-      const data = await deptService.getDepts(currentUser?.user_type ?? "ADMIN");
+      const { data } = await departmentService.getDepartments(currentUser?.user_type ?? "ADMIN");
       const inactive = (data ?? []).filter(r => r.record_status === "INACTIVE");
       setRows(inactive);
       onCountChange(inactive.length);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load deleted departments:", err);
+      onCountChange(0);
     } finally {
       setIsLoading(false);
     }
@@ -342,8 +363,10 @@ function DeletedDepts({ currentUser, onCountChange }) {
   async function handleRecover(deptCode) {
     setRecovering(deptCode);
     try {
-      await deptService.recoverDept(deptCode);
+      await departmentService.recoverDepartment(deptCode, currentUser?.id ?? "");
       await loadAll();
+    } catch (err) {
+      console.error("Recovery failed:", err);
     } finally {
       setRecovering(null);
     }
@@ -353,7 +376,7 @@ function DeletedDepts({ currentUser, onCountChange }) {
   if (rows.length === 0) return <EmptyState label="deleted departments" />;
 
   return (
-    <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+    <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm bg-white">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -368,29 +391,32 @@ function DeletedDepts({ currentUser, onCountChange }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {rows.map((row, i) => (
-              <tr key={row.deptCode}
-                style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#F9FAFB" }}
-                onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#FEF2F2"; }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.backgroundColor =
-                    i % 2 === 0 ? "#fff" : "#F9FAFB";
-                }}>
-                <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"
-                  style={{ color: "#59ABBD" }}>{row.deptCode}</td>
-                <td className="px-4 py-3 text-gray-700">{row.deptName}</td>
-                <td className="px-4 py-3 text-xs text-gray-400
-                               max-w-[160px] truncate" title={row.stamp}>
-                  {row.stamp ?? "—"}
-                </td>
-                <td className="px-4 py-3">
-                  <RecoverBtn
-                    onClick={() => handleRecover(row.deptCode)}
-                    loading={recovering === row.deptCode}
-                  />
-                </td>
-              </tr>
-            ))}
+            {rows.map((row, i) => {
+              const currentDeptCode = row.deptcode;
+              return (
+                <tr key={currentDeptCode}
+                  style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#F9FAFB" }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#FEF2F2"; }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.backgroundColor =
+                      i % 2 === 0 ? "#fff" : "#F9FAFB";
+                  }}>
+                  <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"
+                    style={{ color: "#59ABBD" }}>{currentDeptCode}</td>
+                  <td className="px-4 py-3 text-gray-700">{row.deptname}</td>
+                  <td className="px-4 py-3 text-xs text-gray-400
+                                 max-w-[160px] truncate" title={row.stamp}>
+                    {row.stamp ?? "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <RecoverBtn
+                      onClick={() => handleRecover(currentDeptCode)}
+                      loading={recovering === currentDeptCode}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -434,6 +460,11 @@ function EmptyState({ label }) {
 // ─── Main: DeletedItems Page ──────────────────────────────────────────────────
 export default function DeletedItems() {
   const currentUser  = useCurrentUser();
+  
+  if (currentUser === undefined) {
+    return <LoadingSpinner label="user credentials" />;
+  }
+
   const isPrivileged = currentUser?.user_type === "ADMIN" ||
                        currentUser?.user_type === "SUPERADMIN";
 
@@ -445,7 +476,7 @@ export default function DeletedItems() {
   const setCount = key => val =>
     setCounts(prev => ({ ...prev, [key]: val }));
 
-  if (!isPrivileged) {
+  if (!currentUser || !isPrivileged) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center space-y-3">
@@ -459,7 +490,7 @@ export default function DeletedItems() {
           </svg>
           <p className="text-gray-500 font-medium">Access Restricted</p>
           <p className="text-sm text-gray-400">
-            Only ADMIN and SUPERADMIN can view deleted items.
+            Please log in with an ADMIN or SUPERADMIN account to access archived entries.
           </p>
         </div>
       </div>
@@ -482,7 +513,7 @@ export default function DeletedItems() {
 
       {/* ── Tabs ── */}
       <div className="flex flex-wrap gap-2 p-1 bg-gray-100 rounded-xl w-fit">
-        <Tab label="Employees"   count={counts.employees}
+        <Tab label="Employees"    count={counts.employees}
           active={activeTab === "employees"}
           onClick={() => setActiveTab("employees")} />
         <Tab label="Job History" count={counts.jobHistory}
@@ -524,4 +555,3 @@ export default function DeletedItems() {
     </div>
   );
 }
-// Force commit change
