@@ -253,12 +253,12 @@ function SoftDeleteDialog({ row, onClose, onConfirm }) {
 export default function Jobs() {
   const currentUser  = useCurrentUser();
 
-  // 1. Safe extraction with object fallback to prevent null runtime crashes
+  // Safe extraction with object fallback to prevent null runtime crashes
   const rightsData = useRights() || { rights: {}, loading: true };
   const rights = rightsData.rights || {};
   const isRightsLoading = rightsData.loading;
 
-  // 2. Evaluate permissions explicitly out of the rights mapping object
+  // Evaluate permissions explicitly out of the rights mapping object
   const canAdd  = rights["JOB_ADD"] === true;
   const canEdit = rights["JOB_EDIT"] === true;
   const canDel  = rights["JOB_DEL"] === true;
@@ -266,7 +266,6 @@ export default function Jobs() {
   const isPrivileged = currentUser?.user_type === "ADMIN" ||
                        currentUser?.user_type === "SUPERADMIN";
   
-  // 3. This matches your clean dynamic column constraint perfectly
   const hasActions   = canEdit === true || canDel === true;
 
   const [rows,      setRows]      = useState([]);
@@ -277,7 +276,7 @@ export default function Jobs() {
   const [editRow,   setEditRow]   = useState(null);
   const [deleteRow, setDeleteRow] = useState(null);
 
-  // 4. Update the global loader flag to block async race conditions
+  // Update the global loader flag to block async race conditions
   const isGlobalLoading = isLoading || isRightsLoading;
 
   useEffect(() => {
@@ -318,12 +317,8 @@ export default function Jobs() {
   }
 
   async function handleDelete() {
-<<<<<<< HEAD
     if (!deleteRow) return;
-    await jobService.softDeleteJob(deleteRow.jobCode);
-=======
     await jobService.softDeleteJob(deleteRow.jobcode);
->>>>>>> pr-77-local
     await loadAll();
   }
 
