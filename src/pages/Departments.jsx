@@ -8,7 +8,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRights }      from "../hooks/useRights";
 import { useCurrentUser } from "../hooks/useCurrentUser";
-import deptService        from "../services/deptService";
+import deptService from "../services/departmentService";
 
 // ─── Shared: Input ───────────────────────────────────────────────────────────
 function Input({ id, label, value, onChange, required, disabled, error }) {
