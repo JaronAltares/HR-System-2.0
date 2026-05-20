@@ -1,6 +1,7 @@
 // src/hooks/useCurrentUser.js
-// M2 – Sprint 2
-// Queries the current user's session role dynamically from Google Metadata.
+// FIX: Was hardcoding user_type = "SUPERADMIN" for all users, breaking the
+// entire rights/visibility system. Now fetches the real profile from the
+// `user` table using the correct PK column `userId`.
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
@@ -11,38 +12,60 @@ export function useCurrentUser() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        // 1. Grab the secure auth session directly from Supabase auth memory
-        const { data: { user } } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
         if (!user) {
           setProfile(null);
           return;
         }
 
-        // 2. Extract metadata identities safely straight from the Google authentication packet
-        const googleMeta = user.user_metadata || {};
+        // Fetch real user row — PK is `userId`, not `id`
+        const { data: userRow, error } = await supabase
+          .from("user")
+          .select("userid, email, username, user_type, record_status")
+          .eq("userid", user.id)
+          .single();
 
-        // 3. Resolve profile data instantly without waiting on relational data tables
+        if (error || !userRow) {
+          console.error("useCurrentUser: could not load user row", error);
+          setProfile(null);
+          return;
+        }
+
+        // Use Google metadata for display name if username not set
+        const googleMeta = user.user_metadata || {};
+        const displayName =
+          userRow.username ||
+          googleMeta.full_name ||
+          googleMeta.name ||
+          userRow.email;
+
         setProfile({
-          id: user.id,
-          email: user.email,
-          user_type: "SUPERADMIN", // Full operational privileges for development testing
-          firstname: googleMeta.full_name || "Admin",
-          lastname: "User"
+          id: userRow.userid,
+          email: userRow.email || user.email,
+          user_type: userRow.user_type,   // real value from DB: USER | ADMIN | SUPERADMIN
+          record_status: userRow.record_status,
+          username: userRow.username,
+          name: displayName,
         });
       } catch (err) {
-        console.error("🔴 useCurrentUser execution exception caught:", err);
-        // Safe fallback resolution to prevent frontend freezing loops
-        setProfile({
-          id: "fallback-id",
-          email: "admin@hope.com",
-          user_type: "SUPERADMIN",
-          firstname: "Admin",
-          lastname: "User"
-        });
+        console.error("useCurrentUser error:", err);
+        setProfile(null);
       }
     }
+
     fetchProfile();
+
+    // Re-run on auth state changes (login / logout)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      fetchProfile();
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return profile;
