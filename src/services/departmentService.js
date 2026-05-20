@@ -14,7 +14,8 @@ export const departmentService = {
       query = query.eq("record_status", "ACTIVE");
     }
 
-    const { data, error } = await query.order("deptCode");
+    // FIX: Changed sorting column from camelCase "deptCode" to lowercase "deptcode"
+    const { data, error } = await query.order("deptcode");
     return { data, error };
   },
 
@@ -30,10 +31,11 @@ export const departmentService = {
 
   // Update department
   async updateDepartment(deptCode, updates) {
+    // FIX: Changed the matching clause constraint column to lowercase "deptcode"
     const { data, error } = await supabase
       .from("department")
       .update(updates)
-      .eq("deptCode", deptCode)
+      .eq("deptcode", deptCode)
       .select()
       .single();
     return { data, error };
@@ -42,10 +44,11 @@ export const departmentService = {
   // Soft delete — sets record_status = 'INACTIVE' (no hard deletes per project rules)
   async softDeleteDepartment(deptCode, userId) {
     const stamp = `DELETED ${new Date().toISOString()} ${userId}`;
+    // FIX: Changed the matching clause constraint column to lowercase "deptcode"
     const { data, error } = await supabase
       .from("department")
       .update({ record_status: "INACTIVE", stamp })
-      .eq("deptCode", deptCode)
+      .eq("deptcode", deptCode)
       .select()
       .single();
     return { data, error };
@@ -54,10 +57,11 @@ export const departmentService = {
   // Recover — sets record_status back to 'ACTIVE'
   async recoverDepartment(deptCode, userId) {
     const stamp = `RECOVERED ${new Date().toISOString()} ${userId}`;
+    // FIX: Changed the matching clause constraint column to lowercase "deptcode"
     const { data, error } = await supabase
       .from("department")
       .update({ record_status: "ACTIVE", stamp })
-      .eq("deptCode", deptCode)
+      .eq("deptcode", deptCode)
       .select()
       .single();
     return { data, error };

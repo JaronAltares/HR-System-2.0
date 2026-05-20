@@ -125,10 +125,10 @@ function AddJobHistoryModal({ empNo, onClose, onSave }) {
     setIsLoading(true);
     try {
       await onSave({
-        empNo:         form.empNo,
-        jobCode:       form.jobCode,
-        deptCode:      form.deptCode,
-        effDate:       form.effDate,
+        empno:         form.empNo,
+        jobcode:       form.jobCode,
+        deptcode:      form.deptCode,
+        effdate:       form.effDate,
         salary:        form.salary ? parseFloat(form.salary) : null,
         record_status: "ACTIVE",
         stamp:         `ADDED-${new Date().toISOString()}`,
@@ -180,9 +180,9 @@ function AddJobHistoryModal({ empNo, onClose, onSave }) {
 // ─── Edit Job History Modal ──────────────────────────────────────────────────
 function EditJobHistoryModal({ row, onClose, onSave }) {
   const [form,      setForm]      = useState({
-    jobCode:  row.jobCode  ?? "",
-    deptCode: row.deptCode ?? "",
-    effDate:  row.effDate  ?? "",
+    jobCode:  row.jobcode  ?? "",
+    deptCode: row.deptcode ?? "",
+    effDate:  row.effdate  ?? "",
     salary:   row.salary   ?? "",
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -194,8 +194,8 @@ function EditJobHistoryModal({ row, onClose, onSave }) {
     setServerErr("");
     setIsLoading(true);
     try {
-      await onSave(row.empNo, row.jobCode, row.effDate, {
-        deptCode: form.deptCode,
+      await onSave(row.empno, row.jobcode, row.effdate, {
+        deptcode: form.deptCode,
         salary:   form.salary ? parseFloat(form.salary) : null,
         stamp:    `EDITED-${new Date().toISOString()}`,
       });
@@ -208,7 +208,7 @@ function EditJobHistoryModal({ row, onClose, onSave }) {
   }
 
   return (
-    <Modal title={`Edit Job History — ${row.empNo}`} onClose={onClose}>
+    <Modal title={`Edit Job History — ${row.empno}`} onClose={onClose}>
       <div className="space-y-4">
         {serverErr && (
           <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3
@@ -271,9 +271,9 @@ function SoftDeleteDialog({ row, onClose, onConfirm }) {
         </div>
         <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
           <p className="text-sm font-semibold" style={{ color: "#1B263B" }}>
-            {row.empNo} — {row.jobCode}
+            {row.empno} — {row.jobcode}
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">Eff. Date: {fmt(row.effDate)}</p>
+          <p className="text-xs text-gray-500 mt-0.5">Eff. Date: {fmt(row.effdate)}</p>
         </div>
         <div className="flex justify-end gap-3 pt-1">
           <button onClick={onClose} disabled={isLoading}
@@ -338,11 +338,12 @@ export default function JobHistory() {
         setEmployee(found ?? null);
         if (!found) setEmpErr(`Employee ${empNo} not found.`);
       }
-      // Load job history
-      const data = await jobHistoryService.getJobHistory(
+      // FIX: Correctly destructure { data, error } object from the service layer return payload
+      const { data, error } = await jobHistoryService.getJobHistory(
         empNo ?? null,
         currentUser?.user_type ?? "USER"
       );
+      if (error) throw error;
       setRows(data ?? []);
     } catch (err) {
       setFetchErr(err.message);
@@ -352,33 +353,37 @@ export default function JobHistory() {
   }
 
   // ── Filtered rows ─────────────────────────────────────────────────────────
+  // FIX: map filters to use strict lowercase data mappings (empno, jobcode, etc.)
   const visible = useMemo(() => {
     if (!search.trim()) return rows;
     const q = search.toLowerCase();
     return rows.filter(r =>
-      (r.empNo     ?? "").toLowerCase().includes(q) ||
-      (r.jobCode   ?? "").toLowerCase().includes(q) ||
-      (r.deptCode  ?? "").toLowerCase().includes(q) ||
-      (r.job?.jobDesc        ?? "").toLowerCase().includes(q) ||
-      (r.department?.deptName ?? "").toLowerCase().includes(q)
+      (r.empno      ?? "").toLowerCase().includes(q) ||
+      (r.jobcode    ?? "").toLowerCase().includes(q) ||
+      (r.deptcode   ?? "").toLowerCase().includes(q) ||
+      (r.job?.jobdesc         ?? "").toLowerCase().includes(q) ||
+      (r.department?.deptname ?? "").toLowerCase().includes(q)
     );
   }, [rows, search]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   async function handleAdd(data) {
-    await jobHistoryService.addJobHistory(data);
+    const { error } = await jobHistoryService.addJobHistory(data);
+    if (error) throw error;
     await loadAll();
   }
 
   async function handleEdit(empNo, jobCode, effDate, updates) {
-    await jobHistoryService.updateJobHistory(empNo, jobCode, effDate, updates);
+    const { error } = await jobHistoryService.updateJobHistory(empNo, jobCode, effDate, updates);
+    if (error) throw error;
     await loadAll();
   }
 
   async function handleDelete() {
-    await jobHistoryService.softDeleteJobHistory(
-      deleteRow.empNo, deleteRow.jobCode, deleteRow.effDate
+    const { error } = await jobHistoryService.softDeleteJobHistory(
+      deleteRow.empno, deleteRow.jobcode, deleteRow.effdate
     );
+    if (error) throw error;
     await loadAll();
   }
 
@@ -540,7 +545,8 @@ export default function JobHistory() {
                   </td>
                 </tr>
               ) : visible.map((row, i) => (
-                <tr key={`${row.empNo}-${row.jobCode}-${row.effDate}`}
+                // FIX: use lowercase unique values for keys and tracking
+                <tr key={`${row.empno}-${row.jobcode}-${row.effdate}`}
                   className="transition-colors duration-100"
                   style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#F9FAFB" }}
                   onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#EFF6FF"; }}
@@ -548,21 +554,22 @@ export default function JobHistory() {
                     e.currentTarget.style.backgroundColor =
                       i % 2 === 0 ? "#fff" : "#F9FAFB";
                   }}>
+                  {/* FIX: Lowercase target outputs (empno, jobcode, deptcode, effdate, stamp) */}
                   <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"
-                    style={{ color: "#59ABBD" }}>{row.empNo}</td>
+                    style={{ color: "#59ABBD" }}>{row.empno}</td>
                   <td className="px-4 py-3 font-medium whitespace-nowrap"
-                    style={{ color: "#1B263B" }}>{row.jobCode}</td>
+                    style={{ color: "#1B263B" }}>{row.jobcode}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {row.job?.jobDesc ?? "—"}
+                    {row.job?.jobdesc ?? "—"}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-600">
-                    {row.deptCode}
+                    {row.deptcode}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-600">
-                    {row.department?.deptName ?? "—"}
+                    {row.department?.deptname ?? "—"}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-600">
-                    {fmt(row.effDate)}
+                    {fmt(row.effdate)}
                   </td>
                   {isPrivileged && (
                     <td className="px-4 py-3 whitespace-nowrap">

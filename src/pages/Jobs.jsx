@@ -89,7 +89,7 @@ function PrimaryBtn({ onClick, disabled, loading, children }) {
 
 // ─── Add Job Modal ───────────────────────────────────────────────────────────
 function AddJobModal({ onClose, onSave }) {
-  const [form,      setForm]      = useState({ jobCode: "", jobDesc: "" });
+  const [form,      setForm]      = useState({ jobcode: "", jobdesc: "" });
   const [errors,    setErrors]    = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [serverErr, setServerErr] = useState("");
@@ -98,8 +98,8 @@ function AddJobModal({ onClose, onSave }) {
 
   function validate() {
     const e = {};
-    if (!form.jobCode.trim()) e.jobCode = "Job code is required.";
-    if (!form.jobDesc.trim()) e.jobDesc = "Job description is required.";
+    if (!form.jobcode.trim()) e.jobcode = "Job code is required.";
+    if (!form.jobdesc.trim()) e.jobdesc = "Job description is required.";
     return e;
   }
 
@@ -111,8 +111,8 @@ function AddJobModal({ onClose, onSave }) {
     setIsLoading(true);
     try {
       await onSave({
-        jobCode:       form.jobCode.toUpperCase(),
-        jobDesc:       form.jobDesc,
+        jobcode:       form.jobcode.toUpperCase(),
+        jobdesc:       form.jobdesc,
         record_status: "ACTIVE",
         stamp:         `ADDED-${new Date().toISOString()}`,
       });
@@ -131,10 +131,10 @@ function AddJobModal({ onClose, onSave }) {
           <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3
                         border border-red-200">{serverErr}</p>
         )}
-        <Input id="jobCode" label="Job Code" value={form.jobCode}
-          onChange={set("jobCode")} required error={errors.jobCode} />
-        <Input id="jobDesc" label="Job Description" value={form.jobDesc}
-          onChange={set("jobDesc")} required error={errors.jobDesc} />
+        <Input id="jobcode" label="Job Code" value={form.jobcode}
+          onChange={set("jobcode")} required error={errors.jobcode} />
+        <Input id="jobdesc" label="Job Description" value={form.jobdesc}
+          onChange={set("jobdesc")} required error={errors.jobdesc} />
         <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
           <button onClick={onClose} disabled={isLoading}
             className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600
@@ -150,7 +150,7 @@ function AddJobModal({ onClose, onSave }) {
 
 // ─── Edit Job Modal ──────────────────────────────────────────────────────────
 function EditJobModal({ row, onClose, onSave }) {
-  const [form,      setForm]      = useState({ jobDesc: row.jobDesc ?? "" });
+  const [form,      setForm]      = useState({ jobdesc: row.jobdesc ?? "" });
   const [isLoading, setIsLoading] = useState(false);
   const [serverErr, setServerErr] = useState("");
 
@@ -158,8 +158,8 @@ function EditJobModal({ row, onClose, onSave }) {
     setServerErr("");
     setIsLoading(true);
     try {
-      await onSave(row.jobCode, {
-        jobDesc: form.jobDesc,
+      await onSave(row.jobcode, {
+        jobdesc: form.jobdesc,
         stamp:   `EDITED-${new Date().toISOString()}`,
       });
       onClose();
@@ -171,15 +171,15 @@ function EditJobModal({ row, onClose, onSave }) {
   }
 
   return (
-    <Modal title={`Edit Job — ${row.jobCode}`} onClose={onClose}>
+    <Modal title={`Edit Job — ${row.jobcode}`} onClose={onClose}>
       <div className="space-y-4">
         {serverErr && (
           <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3
                         border border-red-200">{serverErr}</p>
         )}
-        <Input id="e-jobCode" label="Job Code" value={row.jobCode} disabled />
-        <Input id="e-jobDesc" label="Job Description" value={form.jobDesc}
-          onChange={e => setForm(p => ({ ...p, jobDesc: e.target.value }))} />
+        <Input id="e-jobcode" label="Job Code" value={row.jobcode} disabled />
+        <Input id="e-jobdesc" label="Job Description" value={form.jobdesc}
+          onChange={e => setForm(p => ({ ...p, jobdesc: e.target.value }))} />
         <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
           <button onClick={onClose} disabled={isLoading}
             className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600
@@ -227,9 +227,9 @@ function SoftDeleteDialog({ row, onClose, onConfirm }) {
         </div>
         <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
           <p className="text-sm font-semibold" style={{ color: "#1B263B" }}>
-            {row.jobCode}
+            {row.jobcode}
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">{row.jobDesc}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{row.jobdesc}</p>
         </div>
         <div className="flex justify-end gap-3 pt-1">
           <button onClick={onClose} disabled={isLoading}
@@ -288,8 +288,8 @@ export default function Jobs() {
     if (!search.trim()) return rows;
     const q = search.toLowerCase();
     return rows.filter(r =>
-      (r.jobCode ?? "").toLowerCase().includes(q) ||
-      (r.jobDesc ?? "").toLowerCase().includes(q)
+      (r.jobcode ?? "").toLowerCase().includes(q) ||
+      (r.jobdesc ?? "").toLowerCase().includes(q)
     );
   }, [rows, search]);
 
@@ -298,13 +298,13 @@ export default function Jobs() {
     await loadAll();
   }
 
-  async function handleEdit(jobCode, updates) {
-    await jobService.updateJob(jobCode, updates);
+  async function handleEdit(jobcode, updates) {
+    await jobService.updateJob(jobcode, updates);
     await loadAll();
   }
 
   async function handleDelete() {
-    await jobService.softDeleteJob(deleteRow.jobCode);
+    await jobService.softDeleteJob(deleteRow.jobcode);
     await loadAll();
   }
 
@@ -416,7 +416,7 @@ export default function Jobs() {
                   </td>
                 </tr>
               ) : visible.map((row, i) => (
-                <tr key={row.jobCode}
+                <tr key={row.jobcode}
                   className="transition-colors duration-100"
                   style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#F9FAFB" }}
                   onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#EFF6FF"; }}
@@ -425,8 +425,8 @@ export default function Jobs() {
                       i % 2 === 0 ? "#fff" : "#F9FAFB";
                   }}>
                   <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"
-                    style={{ color: "#59ABBD" }}>{row.jobCode}</td>
-                  <td className="px-4 py-3 text-gray-700">{row.jobDesc}</td>
+                    style={{ color: "#59ABBD" }}>{row.jobcode}</td>
+                  <td className="px-4 py-3 text-gray-700">{row.jobdesc}</td>
                   {isPrivileged && (
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5

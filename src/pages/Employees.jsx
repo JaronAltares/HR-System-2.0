@@ -2,7 +2,7 @@
 // M2 – Sprint 2 PR-01: feat/ui-employee-list
 
 import { useState, useEffect, useMemo } from "react";
-import { useRights }        from "../hooks/useRights";
+import { useRights }        from "../hooks/useRights"; // FIXED: Now securely handles async delays
 import { useCurrentUser }   from "../hooks/useCurrentUser";
 import { useAuth }          from "../context/AuthContext";
 import employeeService from "../services/employeeService";
@@ -271,9 +271,14 @@ function SoftDeleteDialog({ employee, onClose, onConfirm }) {
 export default function Employees() {
   const { user }    = useAuth();
   const currentUser = useCurrentUser();
-  const canAdd      = useRights("EMP_ADD");
-  const canEdit     = useRights("EMP_EDIT");
-  const canDel      = useRights("EMP_DEL");
+  
+  // 🔴 FIXED: Prevent destructuring crash by appending dynamic fallback assignments
+  const rightsData = useRights() || { rights: {}, loading: true };
+  const rights = rightsData.rights || {};
+  
+  const canAdd  = currentUser?.user_type === "SUPERADMIN" || rights?.EMP_ADD === 1;
+  const canEdit = currentUser?.user_type === "SUPERADMIN" || rights?.EMP_EDIT === 1;
+  const canDel  = currentUser?.user_type === "SUPERADMIN" || rights?.EMP_DEL === 1;
 
   const isPrivileged = currentUser?.user_type === "ADMIN" || currentUser?.user_type === "SUPERADMIN";
 
@@ -291,10 +296,11 @@ export default function Employees() {
   // ── Load employees ──────────────────────────────────────────────────────────
   useEffect(() => {
     async function loadEmployees() {
+      if (!currentUser?.user_type) return; 
       setIsLoading(true);
       setFetchErr("");
       try {
-        const response = await employeeService.getEmployees(currentUser?.user_type ?? "USER");
+        const response = await employeeService.getEmployees(currentUser.user_type);
         if (response && response.error) {
           setFetchErr(response.error.message || "An exception occurred loading employee records.");
         } else if (response && response.data) {
@@ -303,7 +309,6 @@ export default function Employees() {
       } catch (err) {
         setFetchErr(err.message || "A runtime crash occurred in the data mapper.");
       } finally {
-        // ✅ CRITICAL PROTECTION: Guarantees the loader breaks out no matter what happens
         setIsLoading(false);
       }
     }
@@ -326,7 +331,18 @@ export default function Employees() {
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
   async function handleAdd(data) {
-    const result = await employeeService.addEmployee(data);
+    const servicePayload = {
+      employeeNo: data.empno,
+      firstName:  data.firstname,
+      lastName:   data.lastname,
+      gender:     data.gender,
+      birthDate:  data.birthdate,
+      type:       data.type,
+      hireDate:   data.hiredate,
+      sepDate:    data.sepDate
+    };
+
+    const result = await employeeService.addEmployee(servicePayload);
     if (!result.error) {
       const response = await employeeService.getEmployees(currentUser?.user_type ?? "USER");
       if (response.data) setEmployees(response.data);
@@ -351,7 +367,7 @@ export default function Employees() {
   }
 
   // ── Loading State ─────────────────────────────────────────────────────────────
-  if (isLoading) {
+  if (isLoading || rightsData.loading) {
     return (
       <div className="flex items-center justify-center py-20 w-full h-full">
         <div className="flex flex-col items-center gap-3">
@@ -374,6 +390,21 @@ export default function Employees() {
     );
   }
 
+  const dynamicHeaders = [
+    "Emp No.", 
+    "Last Name", 
+    "First Name", 
+    "Gender", 
+    "Hire Date", 
+    "Sep. Date"
+  ];
+  if (isPrivileged) {
+    dynamicHeaders.push("Status", "Stamp");
+  }
+  if (canEdit || canDel) {
+    dynamicHeaders.push("Actions");
+  }
+
   // ── Render Table ──────────────────────────────────────────────────────────────
   return (
     <div className="space-y-5 w-full">
@@ -387,7 +418,7 @@ export default function Employees() {
           </p>
         </div>
 
-        {canAdd === true && (
+        {canAdd && (
           <button onClick={() => setShowAdd(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white shadow-sm"
             style={{ backgroundColor: "#1B263B" }}>
@@ -405,7 +436,7 @@ export default function Employees() {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: "#1B263B" }}>
-                {["Emp No.", "Last Name", "First Name", "Gender", "Hire Date", "Sep. Date", ...(isPrivileged ? ["Status", "Stamp"] : []), "Actions"].map(h => (
+                {dynamicHeaders.map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
                     {h}
                   </th>
@@ -442,20 +473,22 @@ export default function Employees() {
                     </td>
                   )}
 
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
-                      {canEdit === true && (
-                        <button onClick={() => setEditRow(emp)} className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-50">
-                          Edit
-                        </button>
-                      )}
-                      {canDel === true && (
-                        <button onClick={() => setDeleteRow(emp)} className="p-1.5 rounded-lg text-red-400 hover:bg-red-50">
-                          Delete
-                        </button>
-                      )}
-                    </div>
-                  </td>
+                  {(canEdit || canDel) && (
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        {canEdit && (
+                          <button onClick={() => setEditRow(emp)} className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-50">
+                            Edit
+                          </button>
+                        )}
+                        {canDel && (
+                          <button onClick={() => setDeleteRow(emp)} className="p-1.5 rounded-lg text-red-400 hover:bg-red-50">
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

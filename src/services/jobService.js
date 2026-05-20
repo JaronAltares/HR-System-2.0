@@ -1,13 +1,13 @@
 import { supabase } from '../lib/supabase';
 
-const departmentService = {
+const jobService = {
 
-  // Get All Departments
-  async getDepartments(userType) {
+  // Get All Jobs
+  async getJobs(userType) {
     let query = supabase
-      .from('department')
+      .from('job')
       .select('*')
-      .order('deptCode');
+      .order('jobcode'); // Changed 'jobCode' to lowercase 'jobcode'
 
     if (userType === 'USER') {
       query = query.eq('record_status', 'ACTIVE');
@@ -18,53 +18,53 @@ const departmentService = {
     return data;
   },
 
-  // Add New Department
-  async addDepartment(deptData) {
+  // Add New Job
+  async addJob(jobData) {
     const { data, error } = await supabase
-      .from('department')
-      .insert([deptData])
+      .from('job')
+      .insert([jobData])
       .select()
       .single();
     if (error) throw error;
     return data;
   },
 
-  // Update Department
-  async updateDepartment(deptCode, updates) {
+  // Update Job
+  async updateJob(jobcode, updates) {
     const { data, error } = await supabase
-      .from('department')
+      .from('job')
       .update(updates)
-      .eq('deptCode', deptCode)
+      .eq('jobcode', jobcode) // Changed 'jobCode' to lowercase 'jobcode'
       .select()
       .single();
     if (error) throw error;
     return data;
   },
 
-  // Soft Delete Department
-  async softDeleteDepartment(deptCode) {
+  // Soft Delete Job
+  async softDeleteJob(jobcode) {
     const { data, error } = await supabase
-      .from('department')
+      .from('job')
       .update({ 
         record_status: 'INACTIVE',
         stamp: `DELETED-${new Date().toISOString()}`
       })
-      .eq('deptCode', deptCode)
+      .eq('jobcode', jobcode) // Changed 'jobCode' to lowercase 'jobcode'
       .select()
       .single();
     if (error) throw error;
     return data;
   },
 
-  // Recover Department
-  async recoverDepartment(deptCode) {
+  // Recover Job
+  async recoverJob(jobcode) {
     const { data, error } = await supabase
-      .from('department')
+      .from('job')
       .update({ 
         record_status: 'ACTIVE',
         stamp: `RECOVERED-${new Date().toISOString()}`
       })
-      .eq('deptCode', deptCode)
+      .eq('jobcode', jobcode) // Changed 'jobCode' to lowercase 'jobcode'
       .select()
       .single();
     if (error) throw error;
@@ -72,4 +72,4 @@ const departmentService = {
   }
 };
 
-export default departmentService;
+export default jobService;
