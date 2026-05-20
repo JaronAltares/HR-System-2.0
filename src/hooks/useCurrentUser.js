@@ -1,8 +1,7 @@
 // src/hooks/useCurrentUser.js
-// M2 – Sprint 2
-// Queries the current user's profile (user_type) from the database.
-// Used for stamp column visibility and INACTIVE row filtering.
-// M4: Confirm table name matches your provisioned schema (trigger-provision-user)
+// FIX: Was hardcoding user_type = "SUPERADMIN" for all users, breaking the
+// entire rights/visibility system. Now fetches the real profile from the
+// `user` table using the correct PK column `userId`.
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
@@ -12,31 +11,62 @@ export function useCurrentUser() {
 
   useEffect(() => {
     async function fetchProfile() {
-      // Get Supabase auth user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setProfile(null); return; }
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      // Query user profile from provisioned users table
-      // M4: Update table/column names if different from schema
-      const { data, error } = await supabase
-        .from("users")
-        .select("user_type, username, firstname, lastname")
-        .eq("id", user.id)
-        .single();
+        if (!user) {
+          setProfile(null);
+          return;
+        }
 
-      if (error || !data) { setProfile(null); return; }
+        // Fetch real user row — PK is `userId`, not `id`
+        const { data: userRow, error } = await supabase
+          .from("user")
+          .select("userId, email, username, user_type, record_status")
+          .eq("userId", user.id)
+          .single();
 
-      setProfile({
-        id:        user.id,
-        email:     user.email,
-        user_type: data.user_type,   // "USER" | "ADMIN" | "SUPERADMIN"
-        username:  data.username,
-        firstname: data.firstname,
-        lastname:  data.lastname,
-      });
+        if (error || !userRow) {
+          console.error("useCurrentUser: could not load user row", error);
+          setProfile(null);
+          return;
+        }
+
+        // Use Google metadata for display name if username not set
+        const googleMeta = user.user_metadata || {};
+        const displayName =
+          userRow.username ||
+          googleMeta.full_name ||
+          googleMeta.name ||
+          userRow.email;
+
+        setProfile({
+          id: userRow.userId,
+          email: userRow.email || user.email,
+          user_type: userRow.user_type,   // real value from DB: USER | ADMIN | SUPERADMIN
+          record_status: userRow.record_status,
+          username: userRow.username,
+          name: displayName,
+        });
+      } catch (err) {
+        console.error("useCurrentUser error:", err);
+        setProfile(null);
+      }
     }
+
     fetchProfile();
+
+    // Re-run on auth state changes (login / logout)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      fetchProfile();
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  return profile; // null while loading
+  return profile;
 }

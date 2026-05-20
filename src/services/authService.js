@@ -1,21 +1,94 @@
-import { supabase } from '../supabaseClient';
+// src/services/authService.js
+// FIX: Was importing from '../supabaseClient' which does not exist.
+// Correct path is '../lib/supabase'.
+
+import { supabase } from "../lib/supabase";
 
 /**
- * PR-03 Logic: Google OAuth Provider
- * This function triggers the Supabase Google login flow.
+ * Google OAuth sign-in.
+ * Triggers Supabase Google login flow and redirects to /auth/callback.
  */
 export const signInWithGoogle = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
+    provider: "google",
     options: {
-      // This URL must be added to your Supabase Redirect Allow List
       redirectTo: `${window.location.origin}/auth/callback`,
     },
   });
 
   if (error) {
-    console.error("Login failed:", error.message);
+    console.error("Google login failed:", error.message);
     return { success: false, error };
   }
+
   return { success: true, data };
+};
+
+/**
+ * Email + password sign-in with login guard.
+ * After Supabase auth succeeds, checks record_status = 'ACTIVE' in the user table.
+ */
+export const signInWithEmail = async (email, password) => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return { success: false, error };
+  }
+
+  // Login guard: check activation status
+  const { data: userRow, error: userErr } = await supabase
+    .from("user")
+    .select("record_status")
+    .eq("userId", data.user.id)
+    .single();
+
+  if (userErr || !userRow || userRow.record_status !== "ACTIVE") {
+    await supabase.auth.signOut();
+    return {
+      success: false,
+      error: {
+        message:
+          "Your account is pending activation by an HR administrator.",
+      },
+    };
+  }
+
+  return { success: true, data };
+};
+
+/**
+ * Email + password registration.
+ * Supabase trigger provision_new_user() handles inserting user row + rights.
+ */
+export const signUpWithEmail = async (
+  firstName,
+  lastName,
+  username,
+  email,
+  password
+) => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: `${firstName} ${lastName}`, username },
+    },
+  });
+
+  if (error) {
+    return { success: false, error };
+  }
+
+  return { success: true, data };
+};
+
+/**
+ * Sign out current user.
+ */
+export const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  return { error };
 };
