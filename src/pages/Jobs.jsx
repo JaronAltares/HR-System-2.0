@@ -1,7 +1,7 @@
 // src/pages/Jobs.jsx
-// M2 — Sprint 2 PR-03: feat/ui-job-dept
+// M2 — Sprint 2 PR-04: feat/rights-jobs-depts
 // Uses:
-//   M4 → useRights(rightName)  returns true | false | null
+//   M4 → useRights()           returns { rights: {}, loading: boolean }
 //   M4 → useCurrentUser()      gets user_type for stamp + INACTIVE gating
 //   M1 → jobService            real Supabase service calls
 
@@ -252,11 +252,21 @@ function SoftDeleteDialog({ row, onClose, onConfirm }) {
 // ─── Main: Jobs Page ─────────────────────────────────────────────────────────
 export default function Jobs() {
   const currentUser  = useCurrentUser();
-  const canAdd       = useRights("JOB_ADD");
-  const canEdit      = useRights("JOB_EDIT");
-  const canDel       = useRights("JOB_DEL");
+
+  // Safe extraction with object fallback to prevent null runtime crashes
+  const rightsData = useRights() || { rights: {}, loading: true };
+  const rights = rightsData.rights || {};
+  const isRightsLoading = rightsData.loading;
+
+  // Evaluate permissions explicitly out of the rights mapping object
+  const canAdd  = rights["JOB_ADD"] === true;
+  const canEdit = rights["JOB_EDIT"] === true;
+  const canDel  = rights["JOB_DEL"] === true;
+
   const isPrivileged = currentUser?.user_type === "ADMIN" ||
                        currentUser?.user_type === "SUPERADMIN";
+  
+  const hasActions   = canEdit === true || canDel === true;
 
   const [rows,      setRows]      = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -265,6 +275,9 @@ export default function Jobs() {
   const [showAdd,   setShowAdd]   = useState(false);
   const [editRow,   setEditRow]   = useState(null);
   const [deleteRow, setDeleteRow] = useState(null);
+
+  // Update the global loader flag to block async race conditions
+  const isGlobalLoading = isLoading || isRightsLoading;
 
   useEffect(() => {
     if (!currentUser) return;
@@ -304,11 +317,12 @@ export default function Jobs() {
   }
 
   async function handleDelete() {
+    if (!deleteRow) return;
     await jobService.softDeleteJob(deleteRow.jobcode);
     await loadAll();
   }
 
-  if (isLoading) {
+  if (isGlobalLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-3">
@@ -397,7 +411,7 @@ export default function Jobs() {
                 {[
                   "Job Code", "Job Description",
                   ...(isPrivileged ? ["Status", "Stamp"] : []),
-                  "Actions",
+                  ...(hasActions ? ["Actions"] : []),
                 ].map(h => (
                   <th key={h}
                     className="px-4 py-3 text-left text-xs font-semibold
@@ -444,40 +458,42 @@ export default function Jobs() {
                       {row.stamp ?? "—"}
                     </td>
                   )}
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
-                      {canEdit === true && (
-                        <button onClick={() => setEditRow(row)}
-                          title="Edit"
-                          className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-                          style={{ color: "#59ABBD" }}>
-                          <svg className="w-4 h-4" fill="none"
-                            stroke="currentColor" strokeWidth="2"
-                            viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2
-                                 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828
-                                 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                      )}
-                      {canDel === true && row.record_status === "ACTIVE" && (
-                        <button onClick={() => setDeleteRow(row)}
-                          title="Soft delete"
-                          className="p-1.5 rounded-lg hover:bg-red-50
-                                     transition-colors text-red-400">
-                          <svg className="w-4 h-4" fill="none"
-                            stroke="currentColor" strokeWidth="2"
-                            viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2
-                                 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
-                                 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  </td>
+                  {hasActions && (
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        {canEdit === true && (
+                          <button onClick={() => setEditRow(row)}
+                            title="Edit"
+                            className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                            style={{ color: "#59ABBD" }}>
+                            <svg className="w-4 h-4" fill="none"
+                              stroke="currentColor" strokeWidth="2"
+                              viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2
+                                   2 0 002-2v-5m-1.414-9.414a2 2 0 112.828
+                                   2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                        )}
+                        {canDel === true && row.record_status === "ACTIVE" && (
+                          <button onClick={() => setDeleteRow(row)}
+                            title="Soft delete"
+                            className="p-1.5 rounded-lg hover:bg-red-50
+                                       transition-colors text-red-400">
+                            <svg className="w-4 h-4" fill="none"
+                              stroke="currentColor" strokeWidth="2"
+                              viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2
+                                   2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
+                                   1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

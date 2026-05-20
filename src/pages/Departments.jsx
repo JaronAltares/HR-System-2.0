@@ -1,14 +1,14 @@
 // src/pages/Departments.jsx
-// M2 — Sprint 2 PR-03: feat/ui-job-dept
+// M2 — Sprint 2 PR-04: feat/rights-jobs-depts
 // Uses:
-//   M4 → useRights(rightName)  returns true | false | null
+//   M4 → useRights()           returns { rights: {}, loading: boolean }
 //   M4 → useCurrentUser()      gets user_type for stamp + INACTIVE gating
-//   M1 → departmentService     real Supabase service calls
+//   M1 → deptService           real Supabase service calls
 
 import { useState, useEffect, useMemo } from "react";
 import { useRights }      from "../hooks/useRights";
 import { useCurrentUser } from "../hooks/useCurrentUser";
-import { departmentService } from "../services/departmentService"; // FIX: Corrected import name and path
+import deptService from "../services/departmentService";
 
 // ─── Shared: Input ───────────────────────────────────────────────────────────
 function Input({ id, label, value, onChange, required, disabled, error }) {
@@ -87,10 +87,9 @@ function PrimaryBtn({ onClick, disabled, loading, children }) {
   );
 }
 
-// ─── Add Dept Modal ───────────────────────────────────────────────────────────
+// ─── Add Department Modal ────────────────────────────────────────────────────
 function AddDeptModal({ onClose, onSave }) {
-  // FIX: Form fields changed to use lowercase keys to match database payload targets
-  const [form,      setForm]      = useState({ deptcode: "", deptname: "" });
+  const [form,      setForm]      = useState({ deptCode: "", deptDesc: "" });
   const [errors,    setErrors]    = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [serverErr, setServerErr] = useState("");
@@ -99,8 +98,8 @@ function AddDeptModal({ onClose, onSave }) {
 
   function validate() {
     const e = {};
-    if (!form.deptcode.trim()) e.deptcode = "Department code is required.";
-    if (!form.deptname.trim()) e.deptname = "Department name is required.";
+    if (!form.deptCode.trim()) e.deptCode = "Department code is required.";
+    if (!form.deptDesc.trim()) e.deptDesc = "Department description is required.";
     return e;
   }
 
@@ -112,9 +111,10 @@ function AddDeptModal({ onClose, onSave }) {
     setIsLoading(true);
     try {
       await onSave({
-        deptcode:      form.deptcode.toUpperCase(),
-        deptname:      form.deptname,
+        deptCode:      form.deptCode.toUpperCase(),
+        deptDesc:      form.deptDesc,
         record_status: "ACTIVE",
+        stamp:         `ADDED-${new Date().toISOString()}`,
       });
       onClose();
     } catch (err) {
@@ -131,10 +131,10 @@ function AddDeptModal({ onClose, onSave }) {
           <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3
                         border border-red-200">{serverErr}</p>
         )}
-        <Input id="deptcode" label="Dept Code" value={form.deptcode}
-          onChange={set("deptcode")} required error={errors.deptcode} />
-        <Input id="deptname" label="Department Name" value={form.deptname}
-          onChange={set("deptname")} required error={errors.deptname} />
+        <Input id="deptCode" label="Department Code" value={form.deptCode}
+          onChange={set("deptCode")} required error={errors.deptCode} />
+        <Input id="deptDesc" label="Department Description" value={form.deptDesc}
+          onChange={set("deptDesc")} required error={errors.deptDesc} />
         <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
           <button onClick={onClose} disabled={isLoading}
             className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600
@@ -148,10 +148,9 @@ function AddDeptModal({ onClose, onSave }) {
   );
 }
 
-// ─── Edit Dept Modal ──────────────────────────────────────────────────────────
+// ─── Edit Department Modal ───────────────────────────────────────────────────
 function EditDeptModal({ row, onClose, onSave }) {
-  // FIX: Access object data using lowercase .deptname column key
-  const [form,      setForm]      = useState({ deptname: row.deptname ?? "" });
+  const [form,      setForm]      = useState({ deptDesc: row.deptDesc ?? "" });
   const [isLoading, setIsLoading] = useState(false);
   const [serverErr, setServerErr] = useState("");
 
@@ -159,9 +158,9 @@ function EditDeptModal({ row, onClose, onSave }) {
     setServerErr("");
     setIsLoading(true);
     try {
-      // FIX: Access object data using lowercase .deptcode constraint key
-      await onSave(row.deptcode, {
-        deptname: form.deptname,
+      await onSave(row.deptCode, {
+        deptDesc: form.deptDesc,
+        stamp:   `EDITED-${new Date().toISOString()}`,
       });
       onClose();
     } catch (err) {
@@ -172,15 +171,15 @@ function EditDeptModal({ row, onClose, onSave }) {
   }
 
   return (
-    <Modal title={`Edit Department — ${row.deptcode ?? ""}`} onClose={onClose}>
+    <Modal title={`Edit Department — ${row.deptCode}`} onClose={onClose}>
       <div className="space-y-4">
         {serverErr && (
           <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3
                         border border-red-200">{serverErr}</p>
         )}
-        <Input id="e-deptcode" label="Dept Code" value={row.deptcode} disabled />
-        <Input id="e-deptname" label="Department Name" value={form.deptname}
-          onChange={e => setForm(p => ({ ...p, deptname: e.target.value }))} />
+        <Input id="e-deptCode" label="Department Code" value={row.deptCode} disabled />
+        <Input id="e-deptDesc" label="Department Description" value={form.deptDesc}
+          onChange={e => setForm(p => ({ ...p, deptDesc: e.target.value }))} />
         <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
           <button onClick={onClose} disabled={isLoading}
             className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600
@@ -228,11 +227,9 @@ function SoftDeleteDialog({ row, onClose, onConfirm }) {
         </div>
         <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
           <p className="text-sm font-semibold" style={{ color: "#1B263B" }}>
-            {/* FIX: Read from row.deptcode */}
-            {row.deptcode}
+            {row.deptCode}
           </p>
-          {/* FIX: Read from row.deptname */}
-          <p className="text-xs text-gray-500 mt-0.5">{row.deptname}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{row.deptDesc}</p>
         </div>
         <div className="flex justify-end gap-3 pt-1">
           <button onClick={onClose} disabled={isLoading}
@@ -252,14 +249,24 @@ function SoftDeleteDialog({ row, onClose, onConfirm }) {
   );
 }
 
-// ─── Main: Departments Page ───────────────────────────────────────────────────
+// ─── Main: Departments Page ──────────────────────────────────────────────────
 export default function Departments() {
   const currentUser  = useCurrentUser();
-  const canAdd       = useRights("DEPT_ADD");
-  const canEdit      = useRights("DEPT_EDIT");
-  const canDel       = useRights("DEPT_DEL");
+
+  // Safe extraction with object fallback to prevent null runtime crashes
+  const rightsData = useRights() || { rights: {}, loading: true };
+  const rights = rightsData.rights || {};
+  const isRightsLoading = rightsData.loading;
+
+  // Evaluate permissions explicitly out of the rights mapping object
+  const canAdd  = rights["DEPT_ADD"] === true;
+  const canEdit = rights["DEPT_EDIT"] === true;
+  const canDel  = rights["DEPT_DEL"] === true;
+
   const isPrivileged = currentUser?.user_type === "ADMIN" ||
                        currentUser?.user_type === "SUPERADMIN";
+  
+  const hasActions   = canEdit === true || canDel === true;
 
   const [rows,      setRows]      = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -268,6 +275,9 @@ export default function Departments() {
   const [showAdd,   setShowAdd]   = useState(false);
   const [editRow,   setEditRow]   = useState(null);
   const [deleteRow, setDeleteRow] = useState(null);
+
+  // Update the global loader flag to block async race conditions
+  const isGlobalLoading = isLoading || isRightsLoading;
 
   useEffect(() => {
     if (!currentUser) return;
@@ -278,8 +288,7 @@ export default function Departments() {
     setIsLoading(true);
     setFetchErr("");
     try {
-      const { data, error } = await departmentService.getDepartments(currentUser?.user_type ?? "USER");
-      if (error) throw error;
+      const data = await deptService.getDepartments(currentUser?.user_type ?? "USER");
       setRows(data ?? []);
     } catch (err) {
       setFetchErr(err.message);
@@ -291,33 +300,29 @@ export default function Departments() {
   const visible = useMemo(() => {
     if (!search.trim()) return rows;
     const q = search.toLowerCase();
-    // FIX: Filter rows natively via lowercase .deptcode and .deptname fields
     return rows.filter(r =>
-      (r.deptcode ?? "").toLowerCase().includes(q) ||
-      (r.deptname ?? "").toLowerCase().includes(q)
+      (r.deptCode ?? "").toLowerCase().includes(q) ||
+      (r.deptDesc ?? "").toLowerCase().includes(q)
     );
   }, [rows, search]);
 
   async function handleAdd(data) {
-    const { error } = await departmentService.addDepartment(data);
-    if (error) throw error;
+    await deptService.addDepartment(data);
     await loadAll();
   }
 
   async function handleEdit(deptCode, updates) {
-    const { error } = await departmentService.updateDepartment(deptCode, updates);
-    if (error) throw error;
+    await deptService.updateDepartment(deptCode, updates);
     await loadAll();
   }
 
   async function handleDelete() {
-    // FIX: Access target identifying key using lowercase .deptcode property
-    const { error } = await departmentService.softDeleteDepartment(deleteRow.deptcode, currentUser?.id ?? "");
-    if (error) throw error;
+    if (!deleteRow) return;
+    await deptService.softDeleteDepartment(deleteRow.deptCode);
     await loadAll();
   }
 
-  if (isLoading) {
+  if (isGlobalLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-3">
@@ -383,7 +388,7 @@ export default function Departments() {
         </svg>
         <input type="text" value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search dept code, name…"
+          placeholder="Search department code, description…"
           className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300
                      text-sm bg-white outline-none transition-all"
           onFocus={e => {
@@ -404,9 +409,9 @@ export default function Departments() {
             <thead>
               <tr style={{ backgroundColor: "#1B263B" }}>
                 {[
-                  "Dept Code", "Department Name",
+                  "Department Code", "Department Description",
                   ...(isPrivileged ? ["Status", "Stamp"] : []),
-                  "Actions",
+                  ...(hasActions ? ["Actions"] : []),
                 ].map(h => (
                   <th key={h}
                     className="px-4 py-3 text-left text-xs font-semibold
@@ -425,8 +430,7 @@ export default function Departments() {
                   </td>
                 </tr>
               ) : visible.map((row, i) => (
-                // FIX: Key property updated to read from lowercase row.deptcode
-                <tr key={row.deptcode}
+                <tr key={row.deptCode}
                   className="transition-colors duration-100"
                   style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#F9FAFB" }}
                   onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#EFF6FF"; }}
@@ -434,10 +438,9 @@ export default function Departments() {
                     e.currentTarget.style.backgroundColor =
                       i % 2 === 0 ? "#fff" : "#F9FAFB";
                   }}>
-                  {/* FIX: Render text content strings using lowercase row.deptcode and row.deptname fields */}
                   <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"
-                    style={{ color: "#59ABBD" }}>{row.deptcode}</td>
-                  <td className="px-4 py-3 text-gray-700">{row.deptname}</td>
+                    style={{ color: "#59ABBD" }}>{row.deptCode}</td>
+                  <td className="px-4 py-3 text-gray-700">{row.deptDesc}</td>
                   {isPrivileged && (
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5
@@ -455,40 +458,42 @@ export default function Departments() {
                       {row.stamp ?? "—"}
                     </td>
                   )}
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
-                      {canEdit === true && (
-                        <button onClick={() => setEditRow(row)}
-                          title="Edit"
-                          className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-                          style={{ color: "#59ABBD" }}>
-                          <svg className="w-4 h-4" fill="none"
-                            stroke="currentColor" strokeWidth="2"
-                            viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2
-                                 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828
-                                 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                      )}
-                      {canDel === true && row.record_status === "ACTIVE" && (
-                        <button onClick={() => setDeleteRow(row)}
-                          title="Soft delete"
-                          className="p-1.5 rounded-lg hover:bg-red-50
-                                     transition-colors text-red-400">
-                          <svg className="w-4 h-4" fill="none"
-                            stroke="currentColor" strokeWidth="2"
-                            viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2
-                                 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
-                                 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  </td>
+                  {hasActions && (
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        {canEdit === true && (
+                          <button onClick={() => setEditRow(row)}
+                            title="Edit"
+                            className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                            style={{ color: "#59ABBD" }}>
+                            <svg className="w-4 h-4" fill="none"
+                              stroke="currentColor" strokeWidth="2"
+                              viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2
+                                   2 0 002-2v-5m-1.414-9.414a2 2 0 112.828
+                                   2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                        )}
+                        {canDel === true && row.record_status === "ACTIVE" && (
+                          <button onClick={() => setDeleteRow(row)}
+                            title="Soft delete"
+                            className="p-1.5 rounded-lg hover:bg-red-50
+                                       transition-colors text-red-400">
+                            <svg className="w-4 h-4" fill="none"
+                              stroke="currentColor" strokeWidth="2"
+                              viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2
+                                   2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
+                                   1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
