@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const UserRightsContext = createContext();
-
 export const useRights = () => useContext(UserRightsContext);
 
 export const UserRightsProvider = ({ children }) => {
@@ -19,11 +18,10 @@ export const UserRightsProvider = ({ children }) => {
         return;
       }
 
-      // Get user info + rights
       const { data: userData } = await supabase
         .from('user')
         .select('user_type, record_status')
-        .eq('id', user.id)
+        .eq('userid', user.id)
         .single();
 
       if (!userData || userData.record_status !== 'ACTIVE') {
@@ -33,15 +31,14 @@ export const UserRightsProvider = ({ children }) => {
         return;
       }
 
-      // Get all user rights
       const { data: rightsData } = await supabase
         .from('UserModule_Rights')
-        .select('right_value')
-        .eq('user_id', user.id);
+        .select('right_code, right_value')
+        .eq('userid', user.id);
 
       const userRights = {};
       rightsData?.forEach(item => {
-        userRights[item.right_value] = true;
+        userRights[item.right_code] = item.right_value === 1;
       });
 
       setCurrentUser({
@@ -53,7 +50,6 @@ export const UserRightsProvider = ({ children }) => {
       setLoading(false);
     };
 
-    // Listen to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         await getUserRights(session.user);
@@ -64,7 +60,6 @@ export const UserRightsProvider = ({ children }) => {
       }
     });
 
-    // Initial check
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) getUserRights(session.user);
       else setLoading(false);
@@ -73,8 +68,8 @@ export const UserRightsProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const hasRight = (rightValue) => {
-    return !!rights[rightValue];
+  const hasRight = (rightCode) => {
+    return !!rights[rightCode];
   };
 
   const isAdmin = () => currentUser?.user_type === 'ADMIN' || currentUser?.user_type === 'SUPERADMIN';
