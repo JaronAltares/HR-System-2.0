@@ -9,7 +9,7 @@ import { useCurrentUser }    from "../hooks/useCurrentUser";
 import employeeService       from "../services/employeeService";
 import jobHistoryService     from "../services/jobHistoryService";
 import jobService            from "../services/jobService";
-import { departmentService } from "../services/departmentService"; // FIXED: Changed back to named export matching your file structure
+import departmentService     from "../services/departmentService"; // FIXED: Changed to default/named clean import representation
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function fmt(dateStr) {
