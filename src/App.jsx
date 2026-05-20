@@ -11,6 +11,9 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AuthCallback from './pages/AuthCallback';
 import Employees from './pages/Employees';
+import JobHistory from './pages/JobHistory';
+
+// Components
 import AppShell from './components/AppShell';
 import ProtectedRoute from './routes/ProtectedRoutes';
 
@@ -76,7 +79,7 @@ function App() {
             <Route element={<AppWithShell />}>
               <Route path="/" element={<Navigate to="/employees" replace />} />
               <Route path="/employees" element={<Employees />} />
-              <Route path="/jobhistory" element={<div className="p-8 text-gray-500">Job History — Coming in Sprint 2</div>} />
+              <Route path="/jobhistory" element={<JobHistory />} />
               <Route path="/jobs" element={<div className="p-8 text-gray-500">Jobs — Coming in Sprint 2</div>} />
               <Route path="/departments" element={<div className="p-8 text-gray-500">Departments — Coming in Sprint 2</div>} />
               <Route path="/admin" element={<div className="p-8 text-gray-500">Admin — Coming in Sprint 2</div>} />
