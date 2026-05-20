@@ -1,10 +1,16 @@
 // src/components/Sidebar.jsx
-// M2 – PR-03: feat/ui-app-shell
-// UI ONLY — visibility gating per role is M4's Sprint 2 responsibility.
+// M2 – PR-05: fix/ui-sidebar-gating
+// Hides "Admin" and "Deleted Items" nav links for USER accounts.
+// Uses:
+//   M4 → useCurrentUser()  to read user_type
 
 import { NavLink, useLocation } from "react-router-dom";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 
 // ─── Nav Items ─────────────────────────────────────────────────────────────────
+// `minRole` controls visibility:
+//   undefined  → visible to all (USER, ADMIN, SUPERADMIN)
+//   "ADMIN"    → visible to ADMIN and SUPERADMIN only
 const NAV_ITEMS = [
   {
     label: "Employees",
@@ -55,6 +61,7 @@ const NAV_ITEMS = [
   {
     label: "Admin",
     path: "/admin",
+    minRole: "ADMIN",                           // ← hidden for USER
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round"
@@ -74,6 +81,7 @@ const NAV_ITEMS = [
   {
     label: "Deleted Items",
     path: "/deleted-items",
+    minRole: "ADMIN",                           // ← hidden for USER
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round"
@@ -85,9 +93,25 @@ const NAV_ITEMS = [
   },
 ];
 
+// ─── Role Hierarchy Helper ─────────────────────────────────────────────────────
+// Returns true if the current user's role meets or exceeds the required minRole.
+const ROLE_RANK = { USER: 0, ADMIN: 1, SUPERADMIN: 2 };
+
+function hasMinRole(userType, minRole) {
+  if (!minRole) return true;                    // no restriction — always show
+  const userRank     = ROLE_RANK[userType]  ?? 0;
+  const requiredRank = ROLE_RANK[minRole]   ?? 99;
+  return userRank >= requiredRank;
+}
+
 // ─── Sidebar Component ─────────────────────────────────────────────────────────
 export default function Sidebar({ isOpen, onClose }) {
-  const location = useLocation();
+  const location    = useLocation();
+  const currentUser = useCurrentUser();
+  const userType    = currentUser?.user_type ?? "USER";
+
+  // Filter nav items the current user is allowed to see
+  const visibleItems = NAV_ITEMS.filter(item => hasMinRole(userType, item.minRole));
 
   return (
     <>
@@ -131,9 +155,9 @@ export default function Sidebar({ isOpen, onClose }) {
           </p>
         </div>
 
-        {/* Nav Links */}
+        {/* Nav Links — filtered by role */}
         <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map(({ label, path, icon }) => {
+          {visibleItems.map(({ label, path, icon }) => {
             const isActive = location.pathname === path;
             return (
               <NavLink

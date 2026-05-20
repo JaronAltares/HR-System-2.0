@@ -1,3 +1,4 @@
+// src/services/employeeService.js
 import { supabase } from '../lib/supabase';
 
 const employeeService = {
@@ -23,15 +24,10 @@ const employeeService = {
       
       try {
         const fetchRelationalData = async () => {
-          const { data: camelCaseData } = await supabase
-            .from('jobHistory')
-            .select(`empNo, effDate, job (jobDesc), department (deptName)`);
-            
-          if (camelCaseData && camelCaseData.length > 0) return camelCaseData;
-
+          // FIX: Swapped both table fields and relationship tables to strict lowercase
           const { data: lowerCaseData } = await supabase
             .from('jobhistory')
-            .select(`empNo, effDate, job (jobDesc), department (deptName)`);
+            .select(`empno, effdate, job (jobdesc), department (deptname)`);
           return lowerCaseData || [];
         };
 
@@ -46,13 +42,24 @@ const employeeService = {
 
       // 3. Map values cleanly into your UI table schema properties
       const finalizedData = (employeesData || []).map(emp => {
-        const matches = historyData.filter(h => String(h.empNo || h.empno) === String(emp.empno));
-        const latestJob = matches.sort((a, b) => new Date(b.effDate) - new Date(a.effDate))[0];
+        // FIX: Matching filters on strict lowercase fields
+        const matches = historyData.filter(h => String(h.empno) === String(emp.empno));
+        
+        // FIX: Matching sorting array references to lowercase effdate
+        const latestJob = matches.sort((a, b) => new Date(b.effdate) - new Date(a.effdate))[0];
 
         return {
           ...emp,
-          jobDesc: latestJob?.job?.jobDesc || latestJob?.jobDesc || 'General Staff',
-          deptName: latestJob?.department?.deptName || latestJob?.deptName || 'Operations',
+          // Support both lowercase database fields natively
+          employeeNo: emp.empno,
+          firstName: emp.firstname,
+          lastName: emp.lastname,
+          birthDate: emp.birthdate,
+          hireDate: emp.hiredate,
+          sepDate: emp.sepdate,
+          // FIX: Accessing lowercase relationship maps returned by Supabase
+          jobDesc: latestJob?.job?.jobdesc || latestJob?.jobdesc || 'General Staff',
+          deptName: latestJob?.department?.deptname || latestJob?.deptname || 'Operations',
           record_status: emp.record_status || 'ACTIVE'
         };
       });
@@ -67,9 +74,21 @@ const employeeService = {
   // Add New Employee
   async addEmployee(employeeData) {
     try {
+      const formattedData = {
+        empno: employeeData.employeeNo,
+        firstname: employeeData.firstName,
+        lastname: employeeData.lastName,
+        gender: employeeData.gender,
+        birthdate: employeeData.birthDate,
+        hiredate: employeeData.hireDate,
+        sepdate: employeeData.sepDate || null,
+        record_status: employeeData.record_status || 'ACTIVE',
+        stamp: employeeData.stamp || null
+      };
+
       const { data, error } = await supabase
         .from('employee')
-        .insert([employeeData])
+        .insert([formattedData])
         .select()
         .single();
       
@@ -82,9 +101,21 @@ const employeeService = {
   // Update Employee
   async updateEmployee(empno, updates) {
     try {
+      const formattedUpdates = {};
+      
+      if ('employeeNo' in updates) formattedUpdates.empno = updates.employeeNo;
+      if ('firstName' in updates) formattedUpdates.firstname = updates.firstName;
+      if ('lastName' in updates) formattedUpdates.lastname = updates.lastName;
+      if ('gender' in updates) formattedUpdates.gender = updates.gender;
+      if ('birthDate' in updates) formattedUpdates.birthdate = updates.birthDate;
+      if ('hireDate' in updates) formattedUpdates.hiredate = updates.hireDate;
+      if ('sepDate' in updates) formattedUpdates.sepdate = updates.sepDate || null;
+      if ('record_status' in updates) formattedUpdates.record_status = updates.record_status;
+      if ('stamp' in updates) formattedUpdates.stamp = updates.stamp;
+
       const { data, error } = await supabase
         .from('employee')
-        .update(updates)
+        .update(formattedUpdates)
         .eq('empno', empno)
         .select()
         .single();
@@ -110,6 +141,26 @@ const employeeService = {
       
       return { data, error };
     } catch (err) {
+      return { data: null, error: err };
+    }
+  },
+
+  // ─── FIX: Added Missing Recovery Function ──────────────────────────────────
+  async recoverEmployee(empno) {
+    try {
+      const { data, error } = await supabase
+        .from('employee')
+        .update({ 
+          record_status: 'ACTIVE',
+          stamp: null // Clears the deletion timestamp tracker cleanly upon return
+        })
+        .eq('empno', empno)
+        .select()
+        .single();
+      
+      return { data, error };
+    } catch (err) {
+      console.error("🔴 Service error during recovery execution:", err);
       return { data: null, error: err };
     }
   }

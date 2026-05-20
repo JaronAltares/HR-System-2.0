@@ -3,12 +3,12 @@
 // Uses:
 //   M4 → useRights()           returns { rights: {}, loading: boolean }
 //   M4 → useCurrentUser()      gets user_type for stamp + INACTIVE gating
-//   M1 → deptService           real Supabase service calls
+//   M1 → departmentService     real Supabase service calls
 
 import { useState, useEffect, useMemo } from "react";
 import { useRights }      from "../hooks/useRights";
 import { useCurrentUser } from "../hooks/useCurrentUser";
-import deptService        from "../services/deptService";
+import { departmentService } from "../services/departmentService"; // FIX: Corrected import name and path
 
 // ─── Shared: Input ───────────────────────────────────────────────────────────
 function Input({ id, label, value, onChange, required, disabled, error }) {
@@ -85,8 +85,14 @@ function PrimaryBtn({ onClick, disabled, loading, children }) {
 
 // ─── Add Dept Modal ───────────────────────────────────────────────────────────
 function AddDeptModal({ onClose, onSave }) {
+<<<<<<< HEAD
   const [form, setForm]           = useState({ deptCode: "", deptName: "" });
   const [errors, setErrors]       = useState({});
+=======
+  // FIX: Form fields changed to use lowercase keys to match database payload targets
+  const [form,      setForm]      = useState({ deptcode: "", deptname: "" });
+  const [errors,    setErrors]    = useState({});
+>>>>>>> pr-77-local
   const [isLoading, setIsLoading] = useState(false);
   const [serverErr, setServerErr] = useState("");
 
@@ -94,8 +100,8 @@ function AddDeptModal({ onClose, onSave }) {
 
   function validate() {
     const e = {};
-    if (!form.deptCode.trim()) e.deptCode = "Department code is required.";
-    if (!form.deptName.trim()) e.deptName = "Department name is required.";
+    if (!form.deptcode.trim()) e.deptcode = "Department code is required.";
+    if (!form.deptname.trim()) e.deptname = "Department name is required.";
     return e;
   }
 
@@ -107,10 +113,16 @@ function AddDeptModal({ onClose, onSave }) {
     setIsLoading(true);
     try {
       await onSave({
+<<<<<<< HEAD
         deptCode: form.deptCode.toUpperCase(),
         deptName: form.deptName,
         record_status: "ACTIVE",
         stamp: `ADDED-${new Date().toISOString()}`,
+=======
+        deptcode:      form.deptcode.toUpperCase(),
+        deptname:      form.deptname,
+        record_status: "ACTIVE",
+>>>>>>> pr-77-local
       });
       onClose();
     } catch (err) {
@@ -126,8 +138,15 @@ function AddDeptModal({ onClose, onSave }) {
         {serverErr && (
           <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3 border border-red-200">{serverErr}</p>
         )}
+<<<<<<< HEAD
         <Input id="deptCode" label="Dept Code" value={form.deptCode} onChange={set("deptCode")} required error={errors.deptCode} />
         <Input id="deptName" label="Department Name" value={form.deptName} onChange={set("deptName")} required error={errors.deptName} />
+=======
+        <Input id="deptcode" label="Dept Code" value={form.deptcode}
+          onChange={set("deptcode")} required error={errors.deptcode} />
+        <Input id="deptname" label="Department Name" value={form.deptname}
+          onChange={set("deptname")} required error={errors.deptname} />
+>>>>>>> pr-77-local
         <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
           <button onClick={onClose} disabled={isLoading} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
             Cancel
@@ -141,7 +160,12 @@ function AddDeptModal({ onClose, onSave }) {
 
 // ─── Edit Dept Modal ──────────────────────────────────────────────────────────
 function EditDeptModal({ row, onClose, onSave }) {
+<<<<<<< HEAD
   const [form, setForm]           = useState({ deptName: row.deptName ?? "" });
+=======
+  // FIX: Access object data using lowercase .deptname column key
+  const [form,      setForm]      = useState({ deptname: row.deptname ?? "" });
+>>>>>>> pr-77-local
   const [isLoading, setIsLoading] = useState(false);
   const [serverErr, setServerErr] = useState("");
 
@@ -149,9 +173,15 @@ function EditDeptModal({ row, onClose, onSave }) {
     setServerErr("");
     setIsLoading(true);
     try {
+<<<<<<< HEAD
       await onSave(row.deptCode, {
         deptName: form.deptName,
         stamp: `EDITED-${new Date().toISOString()}`,
+=======
+      // FIX: Access object data using lowercase .deptcode constraint key
+      await onSave(row.deptcode, {
+        deptname: form.deptname,
+>>>>>>> pr-77-local
       });
       onClose();
     } catch (err) {
@@ -162,13 +192,19 @@ function EditDeptModal({ row, onClose, onSave }) {
   }
 
   return (
-    <Modal title={`Edit Department — ${row.deptCode}`} onClose={onClose}>
+    <Modal title={`Edit Department — ${row.deptcode ?? ""}`} onClose={onClose}>
       <div className="space-y-4">
         {serverErr && (
           <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3 border border-red-200">{serverErr}</p>
         )}
+<<<<<<< HEAD
         <Input id="e-deptCode" label="Dept Code" value={row.deptCode} disabled />
         <Input id="e-deptName" label="Department Name" value={form.deptName} onChange={e => setForm(p => ({ ...p, deptName: e.target.value }))} />
+=======
+        <Input id="e-deptcode" label="Dept Code" value={row.deptcode} disabled />
+        <Input id="e-deptname" label="Department Name" value={form.deptname}
+          onChange={e => setForm(p => ({ ...p, deptname: e.target.value }))} />
+>>>>>>> pr-77-local
         <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
           <button onClick={onClose} disabled={isLoading} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
             Cancel
@@ -207,8 +243,17 @@ function SoftDeleteDialog({ row, onClose, onConfirm }) {
           </div>
         </div>
         <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
+<<<<<<< HEAD
           <p className="text-sm font-semibold" style={{ color: "#1B263B" }}>{row.deptCode}</p>
           <p className="text-xs text-gray-500 mt-0.5">{row.deptName}</p>
+=======
+          <p className="text-sm font-semibold" style={{ color: "#1B263B" }}>
+            {/* FIX: Read from row.deptcode */}
+            {row.deptcode}
+          </p>
+          {/* FIX: Read from row.deptname */}
+          <p className="text-xs text-gray-500 mt-0.5">{row.deptname}</p>
+>>>>>>> pr-77-local
         </div>
         <div className="flex justify-end gap-3 pt-1">
           <button onClick={onClose} disabled={isLoading} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
@@ -259,7 +304,8 @@ export default function Departments() {
     setIsLoading(true);
     setFetchErr("");
     try {
-      const data = await deptService.getDepts(currentUser?.user_type ?? "USER");
+      const { data, error } = await departmentService.getDepartments(currentUser?.user_type ?? "USER");
+      if (error) throw error;
       setRows(data ?? []);
     } catch (err) {
       setFetchErr(err.message);
@@ -271,25 +317,34 @@ export default function Departments() {
   const visible = useMemo(() => {
     if (!search.trim()) return rows;
     const q = search.toLowerCase();
+    // FIX: Filter rows natively via lowercase .deptcode and .deptname fields
     return rows.filter(r =>
-      (r.deptCode ?? "").toLowerCase().includes(q) ||
-      (r.deptName ?? "").toLowerCase().includes(q)
+      (r.deptcode ?? "").toLowerCase().includes(q) ||
+      (r.deptname ?? "").toLowerCase().includes(q)
     );
   }, [rows, search]);
 
   async function handleAdd(data) {
-    await deptService.addDept(data);
+    const { error } = await departmentService.addDepartment(data);
+    if (error) throw error;
     await loadAll();
   }
 
   async function handleEdit(deptCode, updates) {
-    await deptService.updateDept(deptCode, updates);
+    const { error } = await departmentService.updateDepartment(deptCode, updates);
+    if (error) throw error;
     await loadAll();
   }
 
   async function handleDelete() {
+<<<<<<< HEAD
     if (!deleteRow) return;
     await deptService.softDeleteDept(deleteRow.deptCode);
+=======
+    // FIX: Access target identifying key using lowercase .deptcode property
+    const { error } = await departmentService.softDeleteDepartment(deleteRow.deptcode, currentUser?.id ?? "");
+    if (error) throw error;
+>>>>>>> pr-77-local
     await loadAll();
   }
 
@@ -395,6 +450,7 @@ export default function Departments() {
                     No department records found.
                   </td>
                 </tr>
+<<<<<<< HEAD
               ) : (
                 visible.map((row, i) => (
                   <tr
@@ -423,6 +479,23 @@ export default function Departments() {
                         {row.stamp ?? "—"}
                       </td>
                     )}
+=======
+              ) : visible.map((row, i) => (
+                // FIX: Key property updated to read from lowercase row.deptcode
+                <tr key={row.deptcode}
+                  className="transition-colors duration-100"
+                  style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#F9FAFB" }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#EFF6FF"; }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.backgroundColor =
+                      i % 2 === 0 ? "#fff" : "#F9FAFB";
+                  }}>
+                  {/* FIX: Render text content strings using lowercase row.deptcode and row.deptname fields */}
+                  <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"
+                    style={{ color: "#59ABBD" }}>{row.deptcode}</td>
+                  <td className="px-4 py-3 text-gray-700">{row.deptname}</td>
+                  {isPrivileged && (
+>>>>>>> pr-77-local
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         {canEdit === true && (
