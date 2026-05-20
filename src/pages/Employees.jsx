@@ -1,8 +1,9 @@
 // src/pages/Employees.jsx
 // M2 – Sprint 2 PR-01: feat/ui-employee-list
+// Integrated by M4: Enforced Permissions (PR-02)
 
 import { useState, useEffect, useMemo } from "react";
-import { useRights }        from "../hooks/useRights";
+import { useRights }         from "../hooks/useRights";
 import { useCurrentUser }   from "../hooks/useCurrentUser";
 import { useAuth }          from "../context/AuthContext";
 import employeeService from "../services/employeeService";
@@ -271,9 +272,11 @@ function SoftDeleteDialog({ employee, onClose, onConfirm }) {
 export default function Employees() {
   const { user }    = useAuth();
   const currentUser = useCurrentUser();
-  const canAdd      = useRights("EMP_ADD");
-  const canEdit     = useRights("EMP_EDIT");
-  const canDel      = useRights("EMP_DEL");
+  
+  // Enforce Rights System Permissions (PR-02)
+  const canAdd  = useRights("EMP_ADD");
+  const canEdit = useRights("EMP_EDIT");
+  const canDel  = useRights("EMP_DEL");
 
   const isPrivileged = currentUser?.user_type === "ADMIN" || currentUser?.user_type === "SUPERADMIN";
 

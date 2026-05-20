@@ -1,10 +1,6 @@
 // src/pages/JobHistory.jsx
 // M2 — Sprint 2 PR-02: feat/ui-employee-detail-jh
-// Uses:
-//   M4 → useRights(rightName)  returns true | false | null
-//   M4 → useCurrentUser()      gets user_type for stamp + INACTIVE gating
-//   M1 → jobHistoryService     real Supabase service calls
-//   M1 → employeeService       getEmployees() to find employee detail
+// Integrated by M4: Enforced Permissions (PR-02)
 
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -298,9 +294,12 @@ export default function JobHistory() {
   const [searchParams]  = useSearchParams();
   const empNo           = searchParams.get("empNo");
   const currentUser     = useCurrentUser();
+  
+  // Enforce Rights System Permissions (PR-02)
   const canAdd          = useRights("JH_ADD");
   const canEdit         = useRights("JH_EDIT");
   const canDel          = useRights("JH_DEL");
+  
   const isPrivileged    = currentUser?.user_type === "ADMIN" ||
                           currentUser?.user_type === "SUPERADMIN";
 
