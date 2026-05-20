@@ -1,15 +1,12 @@
 // src/contexts/UserRightsContext.jsx
-// FIXES:
-// 1. Was querying .eq('id', user.id) — PK is `userId`, not `id`
-// 2. Was storing rights as userRights[item.right_value] = true, which maps
-//    the integer "1" as the key instead of the right code (e.g. "EMP_VIEW").
-//    Fixed to select right_code and use that as the map key.
+// Fixed: correct column name userid (lowercase) for all queries
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 const UserRightsContext = createContext();
 
+export const useRights = () => useContext(UserRightsContext);
 export const useRightsContext = () => useContext(UserRightsContext);
 
 export const UserRightsProvider = ({ children }) => {
@@ -25,11 +22,10 @@ export const UserRightsProvider = ({ children }) => {
       return;
     }
 
-    // FIX: query by userId (PK), not by id
     const { data: userData, error: userErr } = await supabase
       .from("user")
-      .select("userId, user_type, record_status, username, email")
-      .eq("userId", authUser.id)
+      .select("userid, user_type, record_status, username, email")
+      .eq("userid", authUser.id)
       .single();
 
     if (userErr || !userData || userData.record_status !== "ACTIVE") {
@@ -39,11 +35,10 @@ export const UserRightsProvider = ({ children }) => {
       return;
     }
 
-    // FIX: select right_code so we can key the map by right name, not by integer value
     const { data: rightsData, error: rightsErr } = await supabase
       .from("UserModule_Rights")
       .select("right_code, right_value")
-      .eq("userId", userData.userId);
+      .eq("userid", userData.userid);
 
     if (rightsErr) {
       console.error("UserRightsContext: failed to load rights", rightsErr);
@@ -52,17 +47,15 @@ export const UserRightsProvider = ({ children }) => {
     const userRights = {};
 
     if (userData.user_type === "SUPERADMIN") {
-      // SUPERADMIN has all rights — populate map to true for every known right
       const ALL_RIGHTS = [
-        "EMP_VIEW","EMP_ADD","EMP_EDIT","EMP_DEL",
-        "JH_VIEW","JH_ADD","JH_EDIT","JH_DEL",
-        "JOB_VIEW","JOB_ADD","JOB_EDIT","JOB_DEL",
-        "DEPT_VIEW","DEPT_ADD","DEPT_EDIT","DEPT_DEL",
+        "EMP_VIEW", "EMP_ADD", "EMP_EDIT", "EMP_DEL",
+        "JH_VIEW", "JH_ADD", "JH_EDIT", "JH_DEL",
+        "JOB_VIEW", "JOB_ADD", "JOB_EDIT", "JOB_DEL",
+        "DEPT_VIEW", "DEPT_ADD", "DEPT_EDIT", "DEPT_DEL",
         "ADM_USER",
       ];
       ALL_RIGHTS.forEach((r) => (userRights[r] = true));
     } else {
-      // Map right_code → boolean using right_value (1 = granted)
       (rightsData || []).forEach((item) => {
         userRights[item.right_code] = item.right_value === 1;
       });
@@ -70,7 +63,7 @@ export const UserRightsProvider = ({ children }) => {
 
     const googleMeta = authUser.user_metadata || {};
     setCurrentUser({
-      id: userData.userId,
+      id: userData.userid,
       email: userData.email || authUser.email,
       username: userData.username,
       name: userData.username || googleMeta.full_name || authUser.email,
@@ -82,7 +75,6 @@ export const UserRightsProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         loadUserRights(session.user);
@@ -91,18 +83,17 @@ export const UserRightsProvider = ({ children }) => {
       }
     });
 
-    // Live auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
-        await loadUserRights(session.user);
-      } else {
-        setCurrentUser(null);
-        setRights({});
-        setLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session) {
+          await loadUserRights(session.user);
+        } else {
+          setCurrentUser(null);
+          setRights({});
+          setLoading(false);
+        }
       }
-    });
+    );
 
     return () => subscription.unsubscribe();
   }, []);

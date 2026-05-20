@@ -1,5 +1,5 @@
 // src/App.jsx
-// M4 – feat/auth-email-signup + feat/auth-google-oauth
+// M4 — feat/auth-email-signup + feat/auth-google-oauth
 // Wires email signIn, signUp, and Google OAuth to Login/Register pages
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -23,7 +23,6 @@ function App() {
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
 
-  // ── Email Sign In ─────────────────────────────────────────────────────────
   const handleEmailLogin = async (email, password) => {
     setAuthError('');
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -33,11 +32,9 @@ function App() {
     }
   };
 
-  // ── Email Sign Up ─────────────────────────────────────────────────────────
   const handleEmailRegister = async (firstName, lastName, username, email, password) => {
     setAuthError('');
     setAuthSuccess('');
-
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -45,18 +42,15 @@ function App() {
         data: { firstName, lastName, username },
       },
     });
-
     if (error) {
       setAuthError(error.message);
       return;
     }
-
     if (data.user) {
       setAuthSuccess('Account created! Please wait for an HR Administrator to activate your account before signing in.');
     }
   };
 
-  // ── Google OAuth ──────────────────────────────────────────────────────────
   const handleGoogleLogin = async () => {
     setAuthError('');
     const { error } = await supabase.auth.signInWithOAuth({
@@ -103,6 +97,11 @@ function App() {
             <Route element={<AppShell />}>
               <Route path="/" element={<Navigate to="/employees" replace />} />
               <Route path="/employees" element={<Employees />} />
+              <Route path="/jobhistory" element={<div className="p-8 text-gray-500">Job History — Coming in Sprint 2</div>} />
+              <Route path="/jobs" element={<div className="p-8 text-gray-500">Jobs — Coming in Sprint 2</div>} />
+              <Route path="/departments" element={<div className="p-8 text-gray-500">Departments — Coming in Sprint 2</div>} />
+              <Route path="/admin" element={<div className="p-8 text-gray-500">Admin — Coming in Sprint 2</div>} />
+              <Route path="/deleted-items" element={<div className="p-8 text-gray-500">Deleted Items — Coming in Sprint 2</div>} />
             </Route>
           </Route>
 
