@@ -1,65 +1,22 @@
-import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+// src/hooks/useRights.js
+// M4 — feat/rights-hook-v2
+// Improved: now uses UserRightsContext instead of making separate Supabase calls
+// More efficient — rights are loaded once for the whole app
 
-/**
- * useRights — Custom hook to check if current user has a specific right.
- * Usage: const canAdd = useRights('EMP_ADD')
- * Returns: true | false | null (null = still loading)
- *
- * FIX: Was querying non-existent columns `is_enabled` and `rights_name`.
- * Correct columns per DB schema are `right_value` (INT) and `right_code` (VARCHAR).
- * Also fixed: joined through user table to get userId from auth UID.
- */
+import { useRightsContext } from "../contexts/UserRightsContext";
+
 export function useRights(rightName) {
-  const [hasRight, setHasRight] = useState(null);
+  const context = useRightsContext();
 
-  useEffect(() => {
-    async function checkRight() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  // Still loading
+  if (!context || context.loading) return null;
 
-      if (!user) {
-        setHasRight(false);
-        return;
-      }
+  // Not logged in
+  if (!context.currentUser) return false;
 
-      // Look up the userId from our user table (auth.uid maps to userId)
-      const { data: userRow, error: userErr } = await supabase
-        .from("user")
-        .select("userid, user_type, record_status")
-        .eq("userid", user.id)
-        .single();
+  // SUPERADMIN has all rights
+  if (context.currentUser.user_type === "SUPERADMIN") return true;
 
-      if (userErr || !userRow || userRow.record_status !== "ACTIVE") {
-        setHasRight(false);
-        return;
-      }
-
-      // SUPERADMIN always has every right
-      if (userRow.user_type === "SUPERADMIN") {
-        setHasRight(true);
-        return;
-      }
-
-      // Check UserModule_Rights using correct column names: right_code + right_value
-      const { data, error } = await supabase
-        .from("UserModule_Rights")
-        .select("right_value")
-        .eq("userid", userRow.userid)
-        .eq("right_code", rightName)
-        .single();
-
-      if (error || !data) {
-        setHasRight(false);
-        return;
-      }
-
-      setHasRight(data.right_value === 1);
-    }
-
-    checkRight();
-  }, [rightName]);
-
-  return hasRight;
+  // Check specific right
+  return !!context.rights[rightName];
 }
