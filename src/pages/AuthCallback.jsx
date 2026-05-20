@@ -1,5 +1,5 @@
 // src/pages/AuthCallback.jsx
-// M4 – feat/auth-google-oauth
+// M4 — feat/auth-google-oauth
 // Handles OAuth redirect, checks record_status = 'ACTIVE' on user table
 
 import { useEffect } from "react";
@@ -15,14 +15,11 @@ export default function AuthCallback() {
     async function handleCallback() {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
-          console.log("AUTH EVENT:", event);
-          console.log("SESSION:", session);
-
           if (event === "SIGNED_IN" && session) {
             const { data: userRow, error } = await supabase
               .from("user")
               .select("record_status, user_type")
-              .eq("userId", session.user.id)
+              .eq("userid", session.user.id)
               .single();
 
             if (error || !userRow) {
@@ -52,7 +49,7 @@ export default function AuthCallback() {
         const { data: userRow, error } = await supabase
           .from("user")
           .select("record_status, user_type")
-          .eq("userId", session.user.id)
+          .eq("userid", session.user.id)
           .single();
 
         if (error || !userRow || userRow.record_status !== "ACTIVE") {
