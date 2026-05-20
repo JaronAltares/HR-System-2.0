@@ -1,7 +1,7 @@
 // src/pages/Departments.jsx
 // M2 — Sprint 2 PR-03: feat/ui-job-dept
 // Uses:
-//   M4 → useRights(rightName)  returns true | false | null
+//   M4 → useRights()           returns { rights: {}, loading: boolean }
 //   M4 → useCurrentUser()      gets user_type for stamp + INACTIVE gating
 //   M1 → deptService           real Supabase service calls
 
@@ -226,9 +226,16 @@ function SoftDeleteDialog({ row, onClose, onConfirm }) {
 // ─── Main: Departments Page ───────────────────────────────────────────────────
 export default function Departments() {
   const currentUser  = useCurrentUser();
-  const canAdd       = useRights("DEPT_ADD");
-  const canEdit      = useRights("DEPT_EDIT");
-  const canDel       = useRights("DEPT_DEL");
+
+  // 1. Safe extraction with object fallback to prevent null runtime crashes
+  const rightsData = useRights() || { rights: {}, loading: true };
+  const rights = rightsData.rights || {};
+  const isRightsLoading = rightsData.loading;
+
+  // 2. Evaluate permissions explicitly out of the rights mapping object
+  const canAdd  = rights["DEPT_ADD"] === true;
+  const canEdit = rights["DEPT_EDIT"] === true;
+  const canDel  = rights["DEPT_DEL"] === true;
 
   const isPrivileged = currentUser?.user_type === "ADMIN" || currentUser?.user_type === "SUPERADMIN";
 
@@ -240,8 +247,8 @@ export default function Departments() {
   const [editRow, setEditRow]     = useState(null);
   const [deleteRow, setDeleteRow] = useState(null);
 
-  // Core loading state checks: Wait for user context AND permissions array to compile completely
-  const isGlobalLoading = isLoading || canAdd === null || canEdit === null || canDel === null;
+  // 3. Update the global loader flag to observe background auth compile states
+  const isGlobalLoading = isLoading || isRightsLoading;
 
   useEffect(() => {
     if (!currentUser) return;

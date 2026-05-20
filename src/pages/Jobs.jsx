@@ -1,9 +1,9 @@
 // src/pages/Jobs.jsx
 // M2 — Sprint 2 PR-04: feat/rights-jobs-depts
 // Uses:
-//   M4 → useRights(rightName)  returns true | false | null
+//   M4 → useRights()           returns { rights: {}, loading: boolean }
 //   M4 → useCurrentUser()      gets user_type for stamp + INACTIVE gating
-//   M1 → jobService             real Supabase service calls
+//   M1 → jobService            real Supabase service calls
 
 import { useState, useEffect, useMemo } from "react";
 import { useRights }      from "../hooks/useRights";
@@ -252,13 +252,21 @@ function SoftDeleteDialog({ row, onClose, onConfirm }) {
 // ─── Main: Jobs Page ─────────────────────────────────────────────────────────
 export default function Jobs() {
   const currentUser  = useCurrentUser();
-  const canAdd       = useRights("JOB_ADD");
-  const canEdit      = useRights("JOB_EDIT");
-  const canDel       = useRights("JOB_DEL");
+
+  // 1. Safe extraction with object fallback to prevent null runtime crashes
+  const rightsData = useRights() || { rights: {}, loading: true };
+  const rights = rightsData.rights || {};
+  const isRightsLoading = rightsData.loading;
+
+  // 2. Evaluate permissions explicitly out of the rights mapping object
+  const canAdd  = rights["JOB_ADD"] === true;
+  const canEdit = rights["JOB_EDIT"] === true;
+  const canDel  = rights["JOB_DEL"] === true;
+
   const isPrivileged = currentUser?.user_type === "ADMIN" ||
                        currentUser?.user_type === "SUPERADMIN";
   
-  // Has modifications privileges at all?
+  // 3. This matches your clean dynamic column constraint perfectly
   const hasActions   = canEdit === true || canDel === true;
 
   const [rows,      setRows]      = useState([]);
@@ -268,6 +276,9 @@ export default function Jobs() {
   const [showAdd,   setShowAdd]   = useState(false);
   const [editRow,   setEditRow]   = useState(null);
   const [deleteRow, setDeleteRow] = useState(null);
+
+  // 4. Update the global loader flag to block async race conditions
+  const isGlobalLoading = isLoading || isRightsLoading;
 
   useEffect(() => {
     if (!currentUser) return;
@@ -307,11 +318,12 @@ export default function Jobs() {
   }
 
   async function handleDelete() {
+    if (!deleteRow) return;
     await jobService.softDeleteJob(deleteRow.jobCode);
     await loadAll();
   }
 
-  if (isLoading) {
+  if (isGlobalLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-3">
