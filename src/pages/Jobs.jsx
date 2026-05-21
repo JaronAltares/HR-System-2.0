@@ -259,12 +259,15 @@ export default function Jobs() {
   const isRightsLoading = rightsData.loading;
 
   // Evaluate permissions explicitly out of the rights mapping object
-  const canAdd  = rights["JOB_ADD"] === true;
-  const canEdit = rights["JOB_EDIT"] === true;
-  const canDel  = rights["JOB_DEL"] === true;
+  // CRITICAL SECURITY GUARD: If current user is flagged as INACTIVE, force all write operations to false!
+  const isUserInactive = currentUser?.record_status === "INACTIVE";
 
-  const isPrivileged = currentUser?.user_type === "ADMIN" ||
-                       currentUser?.user_type === "SUPERADMIN";
+  const canAdd  = isUserInactive ? false : rights["JOB_ADD"] === true;
+  const canEdit = isUserInactive ? false : rights["JOB_EDIT"] === true;
+  const canDel  = isUserInactive ? false : rights["JOB_DEL"] === true;
+
+  const isPrivileged = !isUserInactive && 
+                       (currentUser?.user_type === "ADMIN" || currentUser?.user_type === "SUPERADMIN");
   
   const hasActions   = canEdit === true || canDel === true;
 
@@ -307,17 +310,20 @@ export default function Jobs() {
   }, [rows, search]);
 
   async function handleAdd(data) {
+    if (isUserInactive) throw new Error("Unauthorized action. Your account is inactive.");
     await jobService.addJob(data);
     await loadAll();
   }
 
   async function handleEdit(jobcode, updates) {
+    if (isUserInactive) throw new Error("Unauthorized action. Your account is inactive.");
     await jobService.updateJob(jobcode, updates);
     await loadAll();
   }
 
   async function handleDelete() {
     if (!deleteRow) return;
+    if (isUserInactive) throw new Error("Unauthorized action. Your account is inactive.");
     await jobService.softDeleteJob(deleteRow.jobcode);
     await loadAll();
   }
