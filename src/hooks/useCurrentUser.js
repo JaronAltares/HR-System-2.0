@@ -2,6 +2,8 @@
 // FIX: Was hardcoding user_type = "SUPERADMIN" for all users, breaking the
 // entire rights/visibility system. Now fetches the real profile from the
 // `user` table using the correct PK column `userId`.
+// DEADLOCK FIX: Wrapped post-login state transitions in a safe timer macro task 
+// to prevent client-side database thread hanging during initialization.
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
@@ -56,13 +58,23 @@ export function useCurrentUser() {
       }
     }
 
+    // Initial check on component mount
     fetchProfile();
 
     // Re-run on auth state changes (login / logout)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      fetchProfile();
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        setProfile(null);
+      } else {
+        // 🔄 FIXED: Defers execution to the next event loop cycle.
+        // This stops the auth state change process from colliding with the 
+        // profile table fetch, bypassing the silent thread lock entirely.
+        setTimeout(() => {
+          fetchProfile();
+        }, 0);
+      }
     });
 
     return () => subscription.unsubscribe();
