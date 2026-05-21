@@ -70,11 +70,14 @@ function AppRoutes({ authError, setAuthError, authSuccess, setAuthSuccess, handl
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
 
-  // 🛡️ AUTH WATCHER: If `useCurrentUser` loads a profile, programmatically 
-  // push the user directly past the login screen into the system dashboard.
+  // 🛡️ AUTH WATCHER PATCHED: If `useCurrentUser` loads a profile, only push them
+  // to the dashboard if they are trying to access the login, registration, or base landing routes.
   useEffect(() => {
     if (currentUser) {
-      navigate('/employees', { replace: true });
+      const currentPath = window.location.pathname;
+      if (currentPath === '/login' || currentPath === '/register' || currentPath === '/') {
+        navigate('/employees', { replace: true });
+      }
     }
   }, [currentUser, navigate]);
 
