@@ -64,17 +64,19 @@ function AppWithShell() {
   );
 }
 
-// 🔄 FIXED: Created a distinct layout context component wrapped inside the Router tree context.
-// This allows the children to safely access `useNavigate` and trigger routing redirects after login.
 function AppRoutes({ authError, setAuthError, authSuccess, setAuthSuccess, handleGoogleLogin }) {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
 
-  // 🛡️ AUTH WATCHER: If `useCurrentUser` loads a profile, programmatically 
-  // push the user directly past the login screen into the system dashboard.
+  // 🛡️ AUTH WATCHER (UPDATED FIX): Avoids the infinite redirect trap!
+  // If currentUser is valid, only kick them to /employees if they are trying 
+  // to view the public landing page, login page, or registration portal.
   useEffect(() => {
     if (currentUser) {
-      navigate('/employees', { replace: true });
+      const currentPath = window.location.pathname;
+      if (currentPath === '/login' || currentPath === '/register' || currentPath === '/') {
+        navigate('/employees', { replace: true });
+      }
     }
   }, [currentUser, navigate]);
 
