@@ -7,7 +7,7 @@
 
 import { NavLink, useLocation } from "react-router-dom";
 import { useCurrentUser } from "../hooks/useCurrentUser";
-import { useRights } from "../context/UserRightsContext"; // 🔐 Import your Sprint 2 custom rights context hook
+import { useRights } from "../contexts/UserRightsContext";
 
 // ─── Nav Items ─────────────────────────────────────────────────────────────────
 // `requiredRight` checks your explicit 17-right permissions matrix bits.
@@ -110,6 +110,12 @@ export default function Sidebar({ isOpen, onClose }) {
   const currentUser = useCurrentUser();
   const { rights }  = useRights(); // 🔐 Extract the live user rights matrix state object
   const userType    = currentUser?.user_type ?? "USER";
+
+  // 🛡️ M4 INITIALIZATION GUARD: If user profiling context hasn't loaded yet from Supabase,
+  // do not execute filter lookups against empty rights references. This completely halts the crash.
+  if (!currentUser) {
+    return null;
+  }
 
   // 🔐 SPRINT 3 ENFORCEMENT: Filter links checking both explicit matrix permissions AND role levels
   const visibleItems = NAV_ITEMS.filter(item => {

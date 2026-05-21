@@ -3,7 +3,7 @@
 // Uses:
 //   M4 → useRights()           returns { rights: {}, loading: boolean }
 //   M4 → useCurrentUser()      gets user_type for stamp + INACTIVE gating
-//   M1 → deptService           real Supabase service calls
+//   M1 → deptService          real Supabase service calls
 
 import { useState, useEffect, useMemo } from "react";
 import { useRights }      from "../hooks/useRights";
@@ -150,7 +150,10 @@ function AddDeptModal({ onClose, onSave }) {
 
 // ─── Edit Department Modal ───────────────────────────────────────────────────
 function EditDeptModal({ row, onClose, onSave }) {
-  const [form,      setForm]      = useState({ deptDesc: row.deptDesc ?? "" });
+  const currentDeptCode = row.dept_code ?? row.deptCode ?? "";
+  const currentDeptDesc = row.dept_desc ?? row.deptDesc ?? row.description ?? "";
+
+  const [form,      setForm]      = useState({ deptDesc: currentDeptDesc });
   const [isLoading, setIsLoading] = useState(false);
   const [serverErr, setServerErr] = useState("");
 
@@ -158,7 +161,7 @@ function EditDeptModal({ row, onClose, onSave }) {
     setServerErr("");
     setIsLoading(true);
     try {
-      await onSave(row.deptCode, {
+      await onSave(currentDeptCode, {
         deptDesc: form.deptDesc,
         stamp:   `EDITED-${new Date().toISOString()}`,
       });
@@ -171,13 +174,13 @@ function EditDeptModal({ row, onClose, onSave }) {
   }
 
   return (
-    <Modal title={`Edit Department — ${row.deptCode}`} onClose={onClose}>
+    <Modal title={`Edit Department — ${currentDeptCode}`} onClose={onClose}>
       <div className="space-y-4">
         {serverErr && (
           <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3
                         border border-red-200">{serverErr}</p>
         )}
-        <Input id="e-deptCode" label="Department Code" value={row.deptCode} disabled />
+        <Input id="e-deptCode" label="Department Code" value={currentDeptCode} disabled />
         <Input id="e-deptDesc" label="Department Description" value={form.deptDesc}
           onChange={e => setForm(p => ({ ...p, deptDesc: e.target.value }))} />
         <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
@@ -198,6 +201,8 @@ function EditDeptModal({ row, onClose, onSave }) {
 // ─── Soft Delete Dialog ──────────────────────────────────────────────────────
 function SoftDeleteDialog({ row, onClose, onConfirm }) {
   const [isLoading, setIsLoading] = useState(false);
+  const currentDeptCode = row.dept_code ?? row.deptCode ?? "";
+  const currentDeptDesc = row.dept_desc ?? row.deptDesc ?? row.description ?? "";
 
   async function handleConfirm() {
     setIsLoading(true);
@@ -227,9 +232,9 @@ function SoftDeleteDialog({ row, onClose, onConfirm }) {
         </div>
         <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
           <p className="text-sm font-semibold" style={{ color: "#1B263B" }}>
-            {row.deptCode}
+            {currentDeptCode}
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">{row.deptDesc}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{currentDeptDesc}</p>
         </div>
         <div className="flex justify-end gap-3 pt-1">
           <button onClick={onClose} disabled={isLoading}
@@ -300,10 +305,11 @@ export default function Departments() {
   const visible = useMemo(() => {
     if (!search.trim()) return rows;
     const q = search.toLowerCase();
-    return rows.filter(r =>
-      (r.deptCode ?? "").toLowerCase().includes(q) ||
-      (r.deptDesc ?? "").toLowerCase().includes(q)
-    );
+    return rows.filter(r => {
+      const code = (r.dept_code ?? r.deptCode ?? "").toLowerCase();
+      const desc = (r.dept_desc ?? r.deptDesc ?? r.description ?? "").toLowerCase();
+      return code.includes(q) || desc.includes(q);
+    });
   }, [rows, search]);
 
   async function handleAdd(data) {
@@ -318,7 +324,8 @@ export default function Departments() {
 
   async function handleDelete() {
     if (!deleteRow) return;
-    await deptService.softDeleteDepartment(deleteRow.deptCode);
+    const code = deleteRow.dept_code ?? deleteRow.deptCode;
+    await deptService.softDeleteDepartment(code);
     await loadAll();
   }
 
@@ -429,73 +436,90 @@ export default function Departments() {
                     No department records found.
                   </td>
                 </tr>
-              ) : visible.map((row, i) => (
-                <tr key={row.deptCode}
-                  className="transition-colors duration-100"
-                  style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#F9FAFB" }}
-                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#EFF6FF"; }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.backgroundColor =
-                      i % 2 === 0 ? "#fff" : "#F9FAFB";
-                  }}>
-                  <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"
-                    style={{ color: "#59ABBD" }}>{row.deptCode}</td>
-                  <td className="px-4 py-3 text-gray-700">{row.deptDesc}</td>
-                  {isPrivileged && (
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5
-                                       rounded-full text-xs font-semibold
-                                       ${row.record_status === "ACTIVE"
-                                         ? "bg-green-100 text-green-700"
-                                         : "bg-red-100 text-red-600"}`}>
-                        {row.record_status}
-                      </span>
+              ) : visible.map((row, i) => {
+                // Defensive extraction mapping supporting both snake_case and camelCase
+                const displayCode = row.dept_code ?? row.deptCode ?? "";
+                
+                // Prioritize database properties over the client-side fallback fallback value string matches
+                let rawDesc = row.dept_desc ?? row.deptDesc ?? row.description;
+                
+                // If the value is invalid or a string match error occurs, swap to baseline clean fallback description text
+                const displayDesc = (rawDesc && rawDesc !== "No description available") 
+                  ? rawDesc 
+                  : "No description available";
+
+                return (
+                  <tr key={displayCode || i}
+                    className="transition-colors duration-100"
+                    style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#F9FAFB" }}
+                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#EFF6FF"; }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.backgroundColor =
+                        i % 2 === 0 ? "#fff" : "#F9FAFB";
+                    }}>
+                    <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"
+                      style={{ color: "#59ABBD" }}>
+                      {displayCode}
                     </td>
-                  )}
-                  {isPrivileged && (
-                    <td className="px-4 py-3 text-xs text-gray-400
-                                   max-w-[160px] truncate" title={row.stamp}>
-                      {row.stamp ?? "—"}
+                    <td className="px-4 py-3 text-slate-700">
+                      {displayDesc}
                     </td>
-                  )}
-                  {hasActions && (
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        {canEdit === true && (
-                          <button onClick={() => setEditRow(row)}
-                            title="Edit"
-                            className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-                            style={{ color: "#59ABBD" }}>
-                            <svg className="w-4 h-4" fill="none"
-                              stroke="currentColor" strokeWidth="2"
-                              viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2
-                                   2 0 002-2v-5m-1.414-9.414a2 2 0 112.828
-                                   2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                        )}
-                        {canDel === true && row.record_status === "ACTIVE" && (
-                          <button onClick={() => setDeleteRow(row)}
-                            title="Soft delete"
-                            className="p-1.5 rounded-lg hover:bg-red-50
-                                       transition-colors text-red-400">
-                            <svg className="w-4 h-4" fill="none"
-                              stroke="currentColor" strokeWidth="2"
-                              viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2
-                                   2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
-                                   1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
+                    {isPrivileged && (
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5
+                                         rounded-full text-xs font-semibold
+                                         ${row.record_status === "ACTIVE"
+                                           ? "bg-green-100 text-green-700"
+                                           : "bg-red-100 text-red-600"}`}>
+                          {row.record_status}
+                        </span>
+                      </td>
+                    )}
+                    {isPrivileged && (
+                      <td className="px-4 py-3 text-xs text-gray-400
+                                 max-w-[160px] truncate" title={row.stamp}>
+                        {row.stamp ?? "—"}
+                      </td>
+                    )}
+                    {hasActions && (
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          {canEdit === true && (
+                            <button onClick={() => setEditRow(row)}
+                              title="Edit"
+                              className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                              style={{ color: "#59ABBD" }}>
+                              <svg className="w-4 h-4" fill="none"
+                                stroke="currentColor" strokeWidth="2"
+                                viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2
+                                     2 0 002-2v-5m-1.414-9.414a2 2 0 112.828
+                                     2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                          )}
+                          {canDel === true && row.record_status === "ACTIVE" && (
+                            <button onClick={() => setDeleteRow(row)}
+                              title="Soft delete"
+                              className="p-1.5 rounded-lg hover:bg-red-50
+                                         transition-colors text-red-400">
+                              <svg className="w-4 h-4" fill="none"
+                                stroke="currentColor" strokeWidth="2"
+                                viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2
+                                     2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
+                                     1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
