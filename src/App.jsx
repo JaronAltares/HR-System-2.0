@@ -1,11 +1,12 @@
 // src/App.jsx
-// M4 — feat/auth-email-signup + feat/auth-google-oauth + feat/rights-enforcement
-// Wires email signIn, signUp, Google OAuth, and UserRightsProvider
+// M4 — PR-01: feat/rights-admin-module
+// Wires email signIn, signUp, Google OAuth, UserRightsProvider, and strict Admin Route Guarding.
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { supabase } from './lib/supabase';
 import { AuthProvider } from './context/AuthContext';
 import { UserRightsProvider } from './contexts/UserRightsContext';
+import { useRights } from './context/UserRightsContext'; // 🔐 Import your rights context hook
 import { useCurrentUser } from './hooks/useCurrentUser';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -20,6 +21,28 @@ import DeletedItems from './pages/DeletedItems';
 // Components
 import AppShell from './components/AppShell';
 import ProtectedRoute from './routes/ProtectedRoutes';
+
+// 🔐 SPRINT 3 ROUTE SHIELD: Intercepts URL requests to the Admin panel.
+// If the user's matrix has ADM_USER !== 1, they are locked out and safely redirected.
+function AdminRouteGuard({ children }) {
+  const { rights, loading } = useRights();
+
+  // Wait quietly if the rights matrix background worker is still pulling data from Supabase
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-900 text-white">
+        <p className="text-sm font-medium tracking-wide animate-pulse">Verifying security clearances...</p>
+      </div>
+    );
+  }
+
+  // Enforce explicit matrix bit state security
+  if (rights?.ADM_USER !== 1) {
+    return <Navigate to="/employees" replace />;
+  }
+
+  return children;
+}
 
 function AppWithShell() {
   const currentUser = useCurrentUser();
@@ -90,7 +113,14 @@ function App() {
                 <Route path="/jobhistory" element={<JobHistory />} />
                 <Route path="/jobs" element={<Jobs />} />
                 <Route path="/departments" element={<Departments />} />
-                <Route path="/admin" element={<Admin />} />
+                
+                {/* 🔐 SECURED SPRINT 3 MODULE: Wrapped inside your permission-check shield */}
+                <Route path="/admin" element={
+                  <AdminRouteGuard>
+                    <Admin />
+                  </AdminRouteGuard>
+                } />
+                
                 <Route path="/deleted-items" element={<DeletedItems />} />
               </Route>
             </Route>

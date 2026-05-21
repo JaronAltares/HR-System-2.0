@@ -1,16 +1,17 @@
 // src/components/Sidebar.jsx
-// M2 – PR-05: fix/ui-sidebar-gating
-// Hides "Admin" and "Deleted Items" nav links for USER accounts.
+// M4 – PR-01: feat/rights-admin-module
+// Dynamically gates the Admin Module sidebar item based on the 17-right permissions matrix.
 // Uses:
-//   M4 → useCurrentUser()  to read user_type
+//   M4 → useCurrentUser() to read user_type
+//   M4 → useRights() to check explicit user capability bits (ADM_USER)
 
 import { NavLink, useLocation } from "react-router-dom";
 import { useCurrentUser } from "../hooks/useCurrentUser";
+import { useRights } from "../context/UserRightsContext"; // 🔐 Import your Sprint 2 custom rights context hook
 
 // ─── Nav Items ─────────────────────────────────────────────────────────────────
-// `minRole` controls visibility:
-//   undefined  → visible to all (USER, ADMIN, SUPERADMIN)
-//   "ADMIN"    → visible to ADMIN and SUPERADMIN only
+// `requiredRight` checks your explicit 17-right permissions matrix bits.
+// `minRole` handles structural items like trash logs.
 const NAV_ITEMS = [
   {
     label: "Employees",
@@ -61,7 +62,7 @@ const NAV_ITEMS = [
   {
     label: "Admin",
     path: "/admin",
-    minRole: "ADMIN",                           // ← hidden for USER
+    requiredRight: "ADM_USER",                 // 🔐 SPRINT 3 GATE: Explicit matrix rule instead of hardcoded role rank
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round"
@@ -81,7 +82,7 @@ const NAV_ITEMS = [
   {
     label: "Deleted Items",
     path: "/deleted-items",
-    minRole: "ADMIN",                           // ← hidden for USER
+    minRole: "ADMIN",                           // Kept for structural soft-delete layout tracking
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round"
@@ -94,11 +95,10 @@ const NAV_ITEMS = [
 ];
 
 // ─── Role Hierarchy Helper ─────────────────────────────────────────────────────
-// Returns true if the current user's role meets or exceeds the required minRole.
 const ROLE_RANK = { USER: 0, ADMIN: 1, SUPERADMIN: 2 };
 
 function hasMinRole(userType, minRole) {
-  if (!minRole) return true;                    // no restriction — always show
+  if (!minRole) return true;
   const userRank     = ROLE_RANK[userType]  ?? 0;
   const requiredRank = ROLE_RANK[minRole]   ?? 99;
   return userRank >= requiredRank;
@@ -108,10 +108,18 @@ function hasMinRole(userType, minRole) {
 export default function Sidebar({ isOpen, onClose }) {
   const location    = useLocation();
   const currentUser = useCurrentUser();
+  const { rights }  = useRights(); // 🔐 Extract the live user rights matrix state object
   const userType    = currentUser?.user_type ?? "USER";
 
-  // Filter nav items the current user is allowed to see
-  const visibleItems = NAV_ITEMS.filter(item => hasMinRole(userType, item.minRole));
+  // 🔐 SPRINT 3 ENFORCEMENT: Filter links checking both explicit matrix permissions AND role levels
+  const visibleItems = NAV_ITEMS.filter(item => {
+    // If the link explicitly requires a permission bit, check if that bit is equal to 1
+    if (item.requiredRight) {
+      return rights?.[item.requiredRight] === 1;
+    }
+    // Fall back to structural rank definitions for the trash items panel
+    return hasMinRole(userType, item.minRole);
+  });
 
   return (
     <>
@@ -155,7 +163,7 @@ export default function Sidebar({ isOpen, onClose }) {
           </p>
         </div>
 
-        {/* Nav Links — filtered by role */}
+        {/* Nav Links — filtered by matrix rights */}
         <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
           {visibleItems.map(({ label, path, icon }) => {
             const isActive = location.pathname === path;
