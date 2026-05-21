@@ -1,7 +1,7 @@
 // src/pages/Admin.jsx
-// M2 — Sprint 3 PR-01: feat/ui-admin-users
+// M2 — Sprint 3 PR-02: feat/rights-superadmin-guard
 // UserManagementPage: table of all users with Activate/Deactivate buttons.
-// SUPERADMIN rows are fully disabled with tooltip.
+// SUPERADMIN rows are fully disabled with mandatory protective tooltip.
 // Uses:
 //   M4 → useRights()        ADM_USER right gates the whole page
 //   M4 → useCurrentUser()   to get logged-in user's type
@@ -240,6 +240,7 @@ export default function Admin() {
   }
 
   async function handleActivate(user) {
+    if (user.user_type === "SUPERADMIN") return; // Double-layer defense interceptor
     try {
       await adminService.activateUser(user.userid, currentUser?.user_type);
       showToast(`${user.username || user.email} has been activated.`, "success");
@@ -250,6 +251,7 @@ export default function Admin() {
   }
 
   async function handleDeactivate(user) {
+    if (user.user_type === "SUPERADMIN") return; // Double-layer defense interceptor
     try {
       await adminService.deactivateUser(user.userid, currentUser?.user_type);
       showToast(`${user.username || user.email} has been deactivated.`, "warning");
@@ -559,21 +561,22 @@ export default function Admin() {
                     </td>
 
                     {/* Actions */}
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-left">
                       {isSuperAdmin ? (
+                        /* 🔐 MANDATED SUPERADMIN ROW GUARD TOOLTIP */
                         <Tooltip text="SUPERADMIN accounts cannot be modified">
                           <div className="flex items-center gap-2">
                             <button
                               disabled
                               className="px-3 py-1.5 rounded-lg text-xs font-semibold
-                                         text-gray-300 border border-gray-200 cursor-not-allowed"
+                                         text-gray-300 border border-gray-200 bg-gray-50 cursor-not-allowed"
                             >
                               Activate
                             </button>
                             <button
                               disabled
                               className="px-3 py-1.5 rounded-lg text-xs font-semibold
-                                         text-gray-300 border border-gray-200 cursor-not-allowed"
+                                         text-gray-300 border border-gray-200 bg-gray-50 cursor-not-allowed"
                             >
                               Deactivate
                             </button>
